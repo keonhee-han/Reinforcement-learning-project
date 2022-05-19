@@ -1,0 +1,2 @@
+tutorial_2:tutorial_3
+-DCATKIN_DEVEL_PREFIX=/home/bio/Desktop/BIHR_Nao2022/devel -DCMAKE_INSTALL_PREFIX=/home/bio/Desktop/BIHR_Nao2022/install -G Unix Makefiles
