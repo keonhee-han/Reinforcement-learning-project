@@ -42,6 +42,7 @@ def blob_detection(self, image):
     ## Find outer contours
     im, contours, hierarchy = cv2.findContours(mask_final, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
+    # Fidining the Max contour
     maxContour = 0
     for contour in contours:
         contourSize = cv2.contourArea(contour)
