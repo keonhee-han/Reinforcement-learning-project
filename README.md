@@ -12,4 +12,4 @@
 # ROS things:
 1. Creating a new package:  catkin create pkg tutorial_1 --catkin-deps rospy std_msgs
 2. Source a new package:    source devel/setup.bash
-3. Run a node:              rosrun <package-name> <name-of-python-file>
+3. Run a node:              rosrun package-name name-of-python-file
