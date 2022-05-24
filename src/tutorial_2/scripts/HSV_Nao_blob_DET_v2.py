@@ -32,7 +32,7 @@ url = ""
         # v0 = cv2.getTrackbarPos('v min', 'control')
         # v1 = cv2.getTrackbarPos('v max', 'control')
 
-def blob_detection(self, src):
+def blob_detection(src):
         IHeight, IWidth, _ = src.shape  # assigning image info
         # src = br.imgmsg_to_cv2(data)
         hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
@@ -80,11 +80,16 @@ def blob_detection(self, src):
 
         # Fidining the Max contour
         maxContour = 0
+        maxContourData = None
         for contour in contours:
             contourSize = cv2.contourArea(contour)
             if contourSize > maxContour:
                 maxContour = contourSize
                 maxContourData = contour
+        
+        if maxContourData == None:
+            rospy.loginfo("maxContourData set to None!")
+            return
 
         ## Draw
         cv2.drawContours(src, maxContourData, -1, (0, 255, 0), 2, lineType=cv2.LINE_4)
