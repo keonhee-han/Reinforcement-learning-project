@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import String, Header
 from std_srvs.srv import Empty
 from naoqi_bridge_msgs.msg import JointAnglesWithSpeed,Bumper,HeadTouch
 from sensor_msgs.msg import Image,JointState
@@ -8,6 +8,8 @@ from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
 import csv
+
+import HSV_Nao_blob_DET_v2 as NBD
 
 class tutorial3:
 
@@ -23,100 +25,27 @@ class tutorial3:
     def image_cb(self,data):
         bridge_instance = CvBridge()
         try:
-            br = CvBridge()
- 
+            # br = CvBridge()
+
             # Output debugging information to the terminal
-            #rospy.loginfo("receiving video frame")
-            
+            rospy.loginfo("receiving video frame__B_DET")
+
             # Convert ROS Image message to OpenCV image
-            current_frame_update = br.imgmsg_to_cv2(data)
-            current_frame = cv2.bilateralFilter(current_frame_update,15,75,75)
-            current_frame = cv2.cvtColor(current_frame,cv2.COLOR_BGR2HSV)
+            src = bridge_instance.imgmsg_to_cv2(data,"bgr8") #rgb 8bit
+            # current_frame = br.imgmsg_to_cv2(data)
 
-            params = cv2.SimpleBlobDetector_Params()
-
-            # Change thresholds
-            params.minThreshold = 1
-            params.maxThreshold = 255
-
-
-            # Filter by Area.
-            params.filterByArea = True
-            params.minArea = 15
-
-            # Filter by Circularity
-            params.filterByCircularity = False
-            params.minCircularity = 0.1
-
-            params.filterByColor = False
-            params.blobColor = 255
-
+            #[hkh]Getting x,y coordinate
+            # cv_image = CVA.blob_detection(src)
+            blob_detection_ret = NBD.blob_detection(src) #[hkh]
+            if not isinstance(blob_detection_ret, type(None)):
+                self.blobX, self.blobY = blob_detection_ret
             
-            lower_red = np.array([160,100,20])
-            upper_red = np.array([179,255,255])
-            # Threshold the HSV image to get only blue colors
-            mask2 = cv2.inRange(current_frame, lower_red, upper_red)
-            
-            lower_red = np.array([0,100,20])
-            upper_red = np.array([10,255,255])
-            # Threshold the HSV image to get only blue colors
-            mask1 = cv2.inRange(current_frame, lower_red, upper_red)
+            # cv2.imshow("Keypoints", cv_image) #Keypoints are already implemented above
 
-            mask = mask1 +mask2
-            dilade_kernel = np.ones((10,10),np.uint8)
-            dilated_img = cv2.dilate(mask,dilade_kernel,iterations = 1)
-        
-            # dilate
-            erosion_kernel = np.ones((10,10),np.uint8)
-            closing_img = cv2.erode(dilated_img,erosion_kernel,iterations = 1)
-            detector = cv2.SimpleBlobDetector_create(params)
-            # Detect blobs.
-            
-            # Create a detector with the parameters
-            # OLD: detector = cv2.SimpleBlobDetector(params)
-            detector = cv2.SimpleBlobDetector_create(params)
-
-
-            # Detect blobs.
-            #keypoints = detector.detect(image_hsv)
-            keypoints = detector.detect(closing_img)
-            max = 0
-            if(len(keypoints) >= 0):
-                max = 0
-                xCoord = 0
-                yCoord = 0
-                maxObject = None
-                for blob in keypoints:
-                    if(blob.size>max):
-                        max = blob.size
-                        xCoord = blob.pt[0]
-                        yCoord = blob.pt[1]
-                        maxObject = blob
-
-            # Round the coordinates to get pixel coordinates:
-            xPixel = round(xCoord)
-            yPixel = round(yCoord)
-
-            
-            self.blobX = xPixel
-            self.blobY = yPixel
-            self.blobSize = max
-
-            # For better readability, round size to 3 decimal indices
-            blobSize = round(max, 3)
-
-            #rospy.loginfo("Biggest blob: x Coord: " + str(xPixel) + " y Coord: " + str(yPixel) + " Size: " + str(blobSize))
-
-            im_with_keypoints = cv2.drawKeypoints(current_frame, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            #cv2.circle(frame,(int(kp_max.pt[0]),int(kp_max.pt[1])),int(kp_max.size),(0,255,0),2)
-
-            cv2.imshow("Keypoints", im_with_keypoints)
-            
             cv2.waitKey(3)
-           
+
         except CvBridgeError as e:
             rospy.logerr(e)
-        
 
     # For reading in touch on TB1
     # also collect training data here(?)
@@ -131,16 +60,16 @@ class tutorial3:
             savePitch = self.shoulderPitch
             saveRoll = self.shoulderRoll
             size = self.blobSize
-            if size > 0:
-                rospy.loginfo("----- wrote to file -------")
-                # open the file in the write mode
-                f = open("/home/bio/Desktop/BIHR_Nao2022/src/tutorial_3/scripts/samples.csv", "a")
-                writer = csv.writer(f)
-                row = [saveX, saveY, savePitch, saveRoll]
-                rospy.loginfo(row)
-                writer.writerow(row)
-                f.flush()
-                f.close()
+            #if saveX and saveY != 0:
+            rospy.loginfo("----- wrote to file -------")
+            # open the file in the write mode
+            f = open("/home/bio/Desktop/BIHR_Nao2022/src/tutorial_3/scripts/samples.csv", "a")
+            writer = csv.writer(f)
+            row = [saveX, saveY, savePitch, saveRoll]
+            rospy.loginfo(row)
+            writer.writerow(row)
+            f.flush()
+            f.close()
 
 
 
@@ -169,22 +98,22 @@ class tutorial3:
 
         # Set the initial stiffnesses
         stiffnessState = JointState()
+        stiffnessState.header = Header()
+        stiffnessState.position = []
+        stiffnessState.velocity = []
 
-        stiffnessState.name = "HeadYaw"
-        stiffnessState.effort = 0.9
+        stiffnessState.name = ['HeadYaw', 'HeadPitch', 'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
+  'LHand', 'LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll', 'RHipYawPitch',
+  'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll', 'RShoulderPitch', 'RShoulderRoll',
+  'RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
+
+
+        stiffnessState.effort = [0.9, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+        print(stiffnessState)
         self.stiffnesPub.publish(stiffnessState)
 
-        stiffnessState.name = "HeadPitch"    
-        stiffnessState.effort = 0.9
-        self.stiffnesPub.publish(stiffnessState)
        
-        stiffnessState.name = "RShoulderPitch"  
-        stiffnessState.effort = 0
-        self.stiffnesPub.publish(stiffnessState)
-
-        stiffnessState.name = "RShoulderRoll"
-        stiffnessState.effort = 0
-        self.stiffnesPub.publish(stiffnessState)
 
         rospy.spin()
     
