@@ -26,10 +26,11 @@ class tutorial3:
             br = CvBridge()
  
             # Output debugging information to the terminal
-            rospy.loginfo("receiving video frame")
+            #rospy.loginfo("receiving video frame")
             
             # Convert ROS Image message to OpenCV image
-            current_frame = br.imgmsg_to_cv2(data)
+            current_frame_update = br.imgmsg_to_cv2(data)
+            current_frame = cv2.bilateralFilter(current_frame_update,15,75,75)
             current_frame = cv2.cvtColor(current_frame,cv2.COLOR_BGR2HSV)
 
             params = cv2.SimpleBlobDetector_Params()
@@ -41,27 +42,33 @@ class tutorial3:
 
             # Filter by Area.
             params.filterByArea = True
-            params.minArea = 30
+            params.minArea = 15
 
             # Filter by Circularity
-            params.filterByCircularity = True
+            params.filterByCircularity = False
             params.minCircularity = 0.1
 
-            params.filterByColor = True
+            params.filterByColor = False
             params.blobColor = 255
 
             
-            lower_green = np.array([160,100,20])
-            upper_green = np.array([179,255,255])
+            lower_red = np.array([160,100,20])
+            upper_red = np.array([179,255,255])
             # Threshold the HSV image to get only blue colors
-            mask = cv2.inRange(current_frame, lower_green, upper_green)
+            mask2 = cv2.inRange(current_frame, lower_red, upper_red)
             
-            erode_kernel = np.ones((3,3),np.uint8)
-            eroded_img = cv2.erode(mask,erode_kernel,iterations = 1)
+            lower_red = np.array([0,100,20])
+            upper_red = np.array([10,255,255])
+            # Threshold the HSV image to get only blue colors
+            mask1 = cv2.inRange(current_frame, lower_red, upper_red)
+
+            mask = mask1 +mask2
+            dilade_kernel = np.ones((10,10),np.uint8)
+            dilated_img = cv2.dilate(mask,dilade_kernel,iterations = 1)
         
             # dilate
-            dilate_kernel = np.ones((10,10),np.uint8)
-            dilate_img = cv2.dilate(eroded_img,dilate_kernel,iterations = 1)
+            erosion_kernel = np.ones((10,10),np.uint8)
+            closing_img = cv2.erode(dilated_img,erosion_kernel,iterations = 1)
             detector = cv2.SimpleBlobDetector_create(params)
             # Detect blobs.
             
@@ -72,7 +79,7 @@ class tutorial3:
 
             # Detect blobs.
             #keypoints = detector.detect(image_hsv)
-            keypoints = detector.detect(dilate_img)
+            keypoints = detector.detect(closing_img)
             max = 0
             if(len(keypoints) >= 0):
                 max = 0
@@ -98,7 +105,7 @@ class tutorial3:
             # For better readability, round size to 3 decimal indices
             blobSize = round(max, 3)
 
-            rospy.loginfo("Biggest blob: x Coord: " + str(xPixel) + " y Coord: " + str(yPixel) + " Size: " + str(blobSize))
+            #rospy.loginfo("Biggest blob: x Coord: " + str(xPixel) + " y Coord: " + str(yPixel) + " Size: " + str(blobSize))
 
             im_with_keypoints = cv2.drawKeypoints(current_frame, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             #cv2.circle(frame,(int(kp_max.pt[0]),int(kp_max.pt[1])),int(kp_max.size),(0,255,0),2)
@@ -114,7 +121,7 @@ class tutorial3:
     # For reading in touch on TB1
     # also collect training data here(?)
     def touch_cb(self,data):
-        rospy.loginfo("touch button: "+str(data.button)+" state: "+str(data.state))
+        #rospy.loginfo("touch button: "+str(data.button)+" state: "+str(data.state))
         if data.button == 1 and data.state == 1:
             # save those values to a file
             # Check if blob has a size greater 0:
@@ -125,22 +132,28 @@ class tutorial3:
             saveRoll = self.shoulderRoll
             size = self.blobSize
             if size > 0:
+                rospy.loginfo("----- wrote to file -------")
                 # open the file in the write mode
-                with open('samples.csv', 'w') as f:
-                    writer = csv.writer(f)
-                    row = [saveX, saveY, savePitch, saveRoll]
-                    writer.writerow(row)
+                f = open("/home/bio/Desktop/BIHR_Nao2022/src/tutorial_3/scripts/samples.csv", "a")
+                writer = csv.writer(f)
+                row = [saveX, saveY, savePitch, saveRoll]
+                rospy.loginfo(row)
+                writer.writerow(row)
+                f.flush()
+                f.close()
 
 
 
     def joints_cb(self,data):
-        for index, jointNames in enumerate(data.joint_names):
+        #rospy.loginfo("entering joint states")
+        for index, jointNames in enumerate(data.name):
             if jointNames == "RShoulderPitch":
-                self.shoulderPitch = data.joint_angles[index]
+                self.shoulderPitch = data.position[index]
+                #rospy.loginfo(data.position[index])
                 continue
                 #rospy.loginfo("save")
-            elif jointNames.name == "RShoulderRoll":
-                self.shoulderRoll = data.joint_angles[index]
+            elif jointNames == "RShoulderRoll":
+                self.shoulderRoll = data.position[index]
             
 
 
@@ -148,7 +161,7 @@ class tutorial3:
         rospy.init_node('tutorial3_node',anonymous=True) #initilizes node, sets name
 
         # create several topic subscribers
-        rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
+        rospy.Subscriber("joint_states",JointState,self.joints_cb)
         rospy.Subscriber("tactile_touch",HeadTouch,self.touch_cb)
         rospy.Subscriber("/nao_robot/camera/top/camera/image_raw",Image,self.image_cb)
 
