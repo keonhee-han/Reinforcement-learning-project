@@ -37,8 +37,8 @@ def blob_detection(src):
         # src = br.imgmsg_to_cv2(data)
         hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
         print("---------------------------------\n image shape:", src.shape)
-        lower = np.array((0, 20, 221))
-        upper = np.array((40, 255, 225))
+        lower = np.array((0, 178, 0))
+        upper = np.array((179, 255, 225))
         mask = cv2.inRange(hsv, lower, upper)
         '''Gaussian blur'''
         kernel = np.ones((7, 7), np.uint8)  # np.uint8 = Byte (-128 to 127) : black white color range
@@ -104,7 +104,7 @@ def blob_detection(src):
             xPixel = int(M['m10'] / M['m00'])
             yPixel = int(M['m01'] / M['m00'])
             cv2.circle(src, ( xPixel, yPixel ), 5, (0, 0, 0), -1)
-            rospy.loginfo("Biggest blob: x Coord: " + str(xPixel) + " y Coord: " + str(yPixel) + " Size: " + str(blobSize))
+            rospy.loginfo("Biggest blob: x Coord: " + str(xPixel) + " y Coord: " + str(yPixel) + " Size: " + str(contour))
 
             # Show image:
             cv2.imshow("outline contour & centroid", src)
