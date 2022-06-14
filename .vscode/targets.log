@@ -1,4 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+
 # GNU Make 4.3
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2020 Free Software Foundation, Inc.
@@ -6,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Jun 13 19:06:47 2022
+# Make data base, printed on Tue Jun 14 16:38:01 2022
 
 # Variables
 
@@ -51,7 +53,7 @@ CURDIR := /home/finch22/BIHR_T3/BIHR_Nao2022
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # automatic
@@ -109,7 +111,7 @@ LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:
 # automatic
 +F = $(notdir $+)
 # environment
-WSL_INTEROP = /run/WSL/14055_interop
+WSL_INTEROP = /run/WSL/14025_interop
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
@@ -129,7 +131,7 @@ VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 _ = /mnt/d/VS_Code/Microsoft VS Code/bin/code
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-dd281189-f30d-4a1a-b3a1-35caec2f2737.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-7febacad-aaa6-4eaa-aa64-921936a9cebc.sock
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -213,8 +215,6 @@ GNUmakefile:
 # strcache performance: lookups = 21 / hit rate = 14%
 # hash-table stats:
 # Load=18/8192=0%, Rehash=0, Collisions=0/21=0%
-# Finished Make data base on Mon Jun 13 19:06:47 2022
+# Finished Make data base on Tue Jun 14 16:38:01 2022
 
  
-make: *** No rule to make target 'all'.  Stop.
-
