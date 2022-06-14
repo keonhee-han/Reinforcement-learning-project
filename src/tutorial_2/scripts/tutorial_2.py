@@ -204,7 +204,7 @@ class Central:
         try:
             stiffness_service = rospy.ServiceProxy(service_name,Empty)
             stiffness_service()
-        except rospy.ServiceException, e:
+        except rospy.ServiceException as e:
             rospy.logerr(e)
 
     def set_joint_angles(self, head_angle, topic):
