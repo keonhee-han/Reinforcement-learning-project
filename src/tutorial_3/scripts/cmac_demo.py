@@ -1,17 +1,17 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import math
+import matplotlib
 resolution = 50
 n_a = 3  # receptive field size
 n_x = 2
 n_y = 2
-n_w = 1000
+# n_w = 1000
 miu = []
 lr = 0.01
 
-df = pd.read_csv('samples.csv')  # you need change the address first
-print(df[0:5])
-print(df.columns)
+df = pd.read_csv('samples.csv')
 d = list(np.empty([2, n_a]))
 # d = [[]]
 # displacement
@@ -23,7 +23,7 @@ d[1][1] = 2
 d[1][2] = 1
 
 # W = np.empty([2, 500])
-W = np.full([2, 500], 0.5)
+W = np.full([2, 1000], 0.5)
 y1 = list(df['saveX'])
 y2 = list(df['saveY'])
 x1 = list(df['savePitch'])
@@ -76,7 +76,7 @@ def table_index(y):
     miu = np.empty([3])
     for i in range(0, n_a):
         for j in range(0, n_y):
-            p[i][j] = math.ceil((y[j] + d[j][i])/n_a)
+            p[i][j] = round((y[j] + d[j][i])/n_a)
         miu[i] = cmac_hash(p[i])
     return miu
 
@@ -94,14 +94,18 @@ def cmac_mapping(y):
 
 
 def cmac_train(y, x_pred, x_true):
-    miu = table_index(y)  # miu1,2,3
+    miu = table_index(y)  # miu1,2,3 figure out where is the weight
+    error = x_true - x_pred
     for i in range(0, n_x):
-        error = x_true - x_pred
-        print("error:", error)
         increment = lr*error[i]/n_a
+        # print("error:", error[0])
         # print("increment:", increment)
         for j in range(0, n_a):
             W[i][int(miu[j])] += increment
+
+    meanSError = (error[0]**2 + error[1]**2)**0.5
+    print("Error:", meanSError)
+    return meanSError
 
 
 y1_norm = list(map(normalize_y1, y1))
@@ -109,27 +113,22 @@ y2_norm = list(map(normalize_y2, y2))
 x1_norm = list(map(normalize_x1, x1))
 x2_norm = list(map(normalize_x2, x2))
 y = [y1_norm, y2_norm]
-x = [x1_norm, x2_norm]
-"""
-y_test = [22, 41]
-x_test = [12, 32]
-miu = table_index(y_test)
-print(miu)
-
-x_test_pred = cmac_mapping(y_test)
-print(x_test_pred)
-
-for i in range(0, 1000):
-    cmac_train(y_test, x_test_pred, x_test)
-    x_test_pred = cmac_mapping(y_test)
-    print(x_test_pred)
-"""
-
+x = [x1, x2]
+plt.scatter(x=x1, y=x2, c="blue")
+#plt.show()
+MeanError = []
 for epoch in range(0, 1000):
     print("--------------------epoch", epoch, "------------------------")
+    error = 0
     for i in range(0, len(y1_norm)):
         y_pair = [y[0][i], y[1][i]]
         x_pair = [x[0][i], x[1][i]]
         x_pred = cmac_mapping(y_pair)
-        cmac_train(y_pair, x_pred, x_pair)
-        print("pred:", x_pred, "true:", x_pair)
+        if(epoch==999): plt.scatter(x=x_pred[0], y=x_pred[1], c="red")
+        error += cmac_train(y_pair, x_pred, x_pair)
+        print("input:", y_pair, "pred:", x_pred, "true:", x_pair)
+    MeanError.append(error)
+plt.savefig("Scatter.png")
+plt.plot(MeanError)
+plt.savefig("MAE.png")
+# plt.show()
