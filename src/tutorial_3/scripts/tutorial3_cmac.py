@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from random import randrange
+import random
 import rospy
 from std_msgs.msg import String, Header
 from std_srvs.srv import Empty
@@ -31,7 +31,7 @@ class tutorial3_cmac:
         try:
             # br = CvBridge()
             # Output debugging information to the terminal
-            rospy.loginfo("receiving video frame__B_DET")
+            #rospy.loginfo("receiving video frame__B_DET")
 
             # Convert ROS Image message to OpenCV image
             src = bridge_instance.imgmsg_to_cv2(data,"bgr8") #rgb 8bit
@@ -42,9 +42,12 @@ class tutorial3_cmac:
             blob_detection_ret = NBD.blob_detection(src) #[hkh]
             if not isinstance(blob_detection_ret, type(None)):
                 self.blobX, self.blobY = blob_detection_ret
+                # move arm according to cmac logic if blob is detected
+                # self.move_arm calls the cmac mapping
+                self.move_arm()
             
             # cv2.imshow("Keypoints", cv_image) #Keypoints are already implemented above
-            self.move_arm()
+
             cv2.waitKey(3)
 
         except CvBridgeError as e:
@@ -52,8 +55,9 @@ class tutorial3_cmac:
 
 
     # TODO: put in cmac logic!
+    # input to cmac mapping: self.blobX, self.blobY
     def move_arm(self):
-
+        rospy.loginfo("---------------- here starts cmac movement -----------------------")
         # for testing - random arm values
         test_pitch = random.uniform(-1, 1)
         test_roll = random.uniform(-1, 0.1)
@@ -67,7 +71,7 @@ class tutorial3_cmac:
         joint_angles_to_set.joint_angles.append(head_angle) # the joint values have to be in the same order as the names!!
         joint_angles_to_set.relative = False # if true you can increment positions
         joint_angles_to_set.speed = 0.1 # keep this low if you can
-        print(str(joint_angles_to_set))
+        #print(str(joint_angles_to_set))
         self.jointPub.publish(joint_angles_to_set)
 
 
@@ -81,18 +85,31 @@ class tutorial3_cmac:
         self.set_joint_angles("RElbowYaw", 0.30368995666503906)
         self.set_joint_angles("RElbowRoll",  0.49245595932006836)
         self.set_joint_angles("RWristYaw", 1.2394300699234009)
+
+    def set_stiffness(self, value):
+        if value == True:
+            service_name = '/body_stiffness/enable'
+        elif value == False:
+            service_name = '/body_stiffness/disable'
+        try:
+            stiffness_service = rospy.ServiceProxy(service_name, Empty)
+            stiffness_service()
+        except rospy.ServiceException, e:
+            rospy.logerr(e)
         
 
 
 
     def tutorial3_cmac_execute(self):
+        # cmac training here!!!
         rospy.init_node('tutorial3_cmac_node',anonymous=True) 
-        rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
+        #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         rospy.Subscriber("/nao_robot/camera/top/camera/image_raw",Image,self.image_cb)
         self.jointPub = rospy.Publisher("joint_angles",JointAnglesWithSpeed,queue_size=10)
 
         # start with setting the initial positions of head and right arm
         self.set_initial_pos()
+        self.set_stiffness(True)
 
         rospy.spin()
 
