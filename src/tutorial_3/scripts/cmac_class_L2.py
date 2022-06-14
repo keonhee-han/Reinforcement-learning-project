@@ -42,6 +42,7 @@ class CMACNetwork:
 
     def localization(self, y1, y2, displacement):
         # y1, y2 are indexs
+        # output weight location on the map
 
         location = []
         if (y1 > RESOLUTION_RECEPTIVE -1 - int((RECEPTIVE_FIELD_SIZE - 1)/2)):
@@ -79,6 +80,7 @@ class CMACNetwork:
         return (Error[0] + Error[1])**0.5
 
     def mapping(self, y1, y2, displacement):
+        # get the predict value
         loc = self.localization(y1, y2, displacement)
         x_pred = [0, 0]
         for i in range(0, DIM_OUTPUT):
