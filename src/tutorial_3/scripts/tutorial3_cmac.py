@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 import csv
 import random
+import cmac_class_L2
 
 import HSV_Nao_blob_DET_v2 as NBD
 
@@ -23,6 +24,7 @@ class tutorial3_cmac:
         self.shoulderPitch = 0
         # For setting the stiffnes of single joints
         self.jointPub = 0
+        self.cmac = cmac_class_L2.CMACNetwork()
 
 
     # Read in the blob position
@@ -42,8 +44,17 @@ class tutorial3_cmac:
             blob_detection_ret = NBD.blob_detection(src) #[hkh]
             if not isinstance(blob_detection_ret, type(None)):
                 self.blobX, self.blobY = blob_detection_ret
+                print('blobxy:', self.blobX, self.blobY )
                 # move arm according to cmac logic if blob is detected
                 # self.move_arm calls the cmac mapping
+                a,b,y1_q, y2_q =self.cmac.quantization(0, 0, self.blobX, self.blobY)
+                print('y12:', y1_q, y2_q)
+                x1_q, x2_q =self.cmac.mapping(y1_q, y2_q)
+                print('x1_q,x2_q:', x1_q, x2_q)
+                self.shoulderPitch, self.shoulderRoll = self.cmac.de_quantization(x1_q, x2_q)
+                print('x12', self.shoulderPitch, self.shoulderRoll)
+
+
                 self.move_arm()
             
             # cv2.imshow("Keypoints", cv_image) #Keypoints are already implemented above
@@ -59,10 +70,9 @@ class tutorial3_cmac:
     def move_arm(self):
         rospy.loginfo("---------------- here starts cmac movement -----------------------")
         # for testing - random arm values
-        test_pitch = random.uniform(-1, 1)
-        test_roll = random.uniform(-1, 0.1)
-        self.set_joint_angles(test_pitch, "RShoulderPitch")
-        self.set_joint_angles(test_roll, "RShoulderRoll")
+
+        self.set_joint_angles(self.shoulderPitch, "RShoulderPitch")
+        self.set_joint_angles(self.shoulderRoll, "RShoulderRoll")
 
 
     def set_joint_angles(self, head_angle, topic):
@@ -101,15 +111,16 @@ class tutorial3_cmac:
 
 
     def tutorial3_cmac_execute(self):
+
         # cmac training here!!!
         rospy.init_node('tutorial3_cmac_node',anonymous=True) 
         #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
-        rospy.Subscriber("/nao_robot/camera/top/camera/image_raw",Image,self.image_cb)
         self.jointPub = rospy.Publisher("joint_angles",JointAnglesWithSpeed,queue_size=10)
-
         # start with setting the initial positions of head and right arm
         self.set_initial_pos()
         self.set_stiffness(True)
+        self.cmac.execute()
+        rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
 
         rospy.spin()
 

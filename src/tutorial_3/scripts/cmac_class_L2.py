@@ -1,12 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
+import csv
 DISPLACEMENT_n5 = [3, 0, 2, 4, 1]
 DISPLACEMENT_n3 = [1, 0, 2]
 
 RESOLUTION_RECEPTIVE = 50
-RECEPTIVE_FIELD_SIZE = 3 # n_a
+RECEPTIVE_FIELD_SIZE = 5 # n_a
 DIM_INPUT = 2
 DIM_OUTPUT = 2
 LEARNING_RATE = 0.01
@@ -26,21 +25,38 @@ class CMACNetwork:
         self.y1_max = 315
         self.y2_min = 4
         self.y2_max = 233
+
+        #self.x1_min = -2.0857
+        #self.x1_max = 2.0857
+        #self.x2_min = -1.3265
+        #self.x2_max = 0.3142
+
         self.x1_min = -1.2
         self.x1_max = -0.5
         self.x2_min = -0.4
         self.x2_max = 0.32
+
         self.MeanError = 0
         self.step_size = 3  # displacement
+        self.y1 = []
+        self.y2 = []
+        self.x1 = []
+        self.x2 = []
+
         
-    def read_samples():
-        csv_file = open('samples.csv','r')
+    def read_samples(self):
+        csv_file = open('/home/bio/Desktop/BIHR_Nao2022/src/tutorial_3/scripts/samples.csv','r')
         for y1, y2, x1, x2 in csv.reader(csv_file, delimiter=','):
             # Append each variable to a separate list
+            #print("-----")
+            #print(y1)
             self.y1.append(float(y1))
             self.y2.append(float(y2))
             self.x1.append(float(x1))
             self.x2.append(float(x2))
+
+        #print("---------------")
+        #print(self.y1)
 
     def quantization(self, x1, x2, y1, y2):
         x1_q = int((x1 - self.x1_min) * RESOLUTION_RECEPTIVE/(self.x1_max - self.x1_min))
@@ -124,20 +140,34 @@ class CMACNetwork:
                     # j is index of location, i is index of row or column
                     # print(i, int(loc[j][0]), int(loc[j][1]))
                     x_pred[i] += self.weights[i][loc[j][0]][loc[j][1]]
+                x_pred[i] = int(x_pred[i])
                 # x_pred[i] += weights[i][int(loc[j][0])][int(loc[j][1])]
         # print(x_pred)
         return x_pred
 
+    def execute(self):
+        self.read_samples()
+        self.weightindex_init()
+        #print(self.x1)
 
+        for epoch in range(0, TRAINING_ITERATIONS):
+            error = 0
+            for i in range(0, TRAINING_SAMPLES):
+                x1_q, x2_q, y1_q, y2_q = self.quantization(self.x1[i], self.x2[i], self.y1[i], self.y2[i])
+                # print("xy", x1_q, x2_q, y1_q, y2_q)
+                error += self.train_step(y1_q, y2_q, x1_q, x2_q)
+                self.mapping(y1_q, y2_q)
+            print('error:', error)
+        print(self.weights)
+
+
+'''
 if __name__ == '__main__':
-    df = pd.read_csv('samples.csv')
-    y1 = list(df['saveX'])
-    y2 = list(df['saveY'])
-    x1 = list(df['savePitch'])
-    x2 = list(df['saveRoll'])
+
     # weights = np.full([2, 50, 50], 0)
     RECEPTIVE_FIELD_SIZE = 3
     cmac = CMACNetwork()
+    cmac.read_samples()
     MSE = []
     cmac.weightindex_init()
     # ax = sns.heatmap(cmac.weights_index, cmap="YlGnBu") # visual the displacement
@@ -148,16 +178,12 @@ if __name__ == '__main__':
     for epoch in range(0, TRAINING_ITERATIONS):
         MeanError = 0
         for i in range(0, TRAINING_SAMPLES):
-            x1_q, x2_q, y1_q, y2_q = cmac.quantization(x1[i], x2[i], y1[i], y2[i])
+            x1_q, x2_q, y1_q, y2_q = cmac.quantization(cmac.x1[i], cmac.x2[i], cmac.y1[i], cmac.y2[i])
             # print("xy", x1_q, x2_q, y1_q, y2_q)
             MeanError += cmac.train_step(y1_q, y2_q, x1_q, x2_q)
             cmac.mapping(y1_q, y2_q)
         print("epoch", epoch, "MSE", MeanError/TRAINING_SAMPLES)
-        MSE.append(MeanError/len(y1))
+        MSE.append(MeanError/len(cmac.y1))
     Weight = cmac.weights[0]
-    # print("Weight:", Weight)
-    ax = sns.heatmap(Weight, cmap="YlGnBu")
-    plt.savefig("heatmap_5(v2).png")
-    # plt.show()
-    plt.clf()
-    plt.plot(MSE, 'blue', label="caseB - r3")
+    #plt.plot(MSE, 'blue', label="caseB - r3")
+'''
