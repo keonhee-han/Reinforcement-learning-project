@@ -17,6 +17,7 @@ TRAINING_SAMPLES = 150
 # -0.4862360954284668 -1.1059720516204834 0.3141592741012573 -0.3896780014038086
 weights = np.full([2, 50, 50], 0)
 
+
 class CMACNetwork:
     def __init__(self):
         self.weights = np.zeros([2, 50, 50])
@@ -31,6 +32,15 @@ class CMACNetwork:
         self.x2_max = 0.32
         self.MeanError = 0
         self.step_size = 3  # displacement
+        
+    def read_samples():
+        csv_file = open('samples.csv','r')
+        for y1, y2, x1, x2 in csv.reader(csv_file, delimiter=','):
+            # Append each variable to a separate list
+            self.y1.append(float(y1))
+            self.y2.append(float(y2))
+            self.x1.append(float(x1))
+            self.x2.append(float(x2))
 
     def quantization(self, x1, x2, y1, y2):
         x1_q = int((x1 - self.x1_min) * RESOLUTION_RECEPTIVE/(self.x1_max - self.x1_min))
