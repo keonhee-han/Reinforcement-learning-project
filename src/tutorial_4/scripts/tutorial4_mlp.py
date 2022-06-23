@@ -10,12 +10,12 @@ import cv2
 import numpy as np
 import csv
 import random
-import cmac_class_L2
+
 
 import HSV_Nao_blob_DET_v2 as NBD
 
 
-class tutorial3_cmac:
+class tutorial4_mlp:
     def __init__(self):
         self.blobX = 0
         self.blobY = 0
@@ -24,7 +24,7 @@ class tutorial3_cmac:
         self.shoulderPitch = 0
         # For setting the stiffnes of single joints
         self.jointPub = 0
-        self.cmac = cmac_class_L2.CMACNetwork()
+        # TDO: Initialize MLP here
 
 
     # Read in the blob position
@@ -110,10 +110,10 @@ class tutorial3_cmac:
 
 
 
-    def tutorial3_cmac_execute(self):
+    def tutorial4_mlp_execute(self):
 
         # cmac training here!!!
-        rospy.init_node('tutorial3_cmac_node',anonymous=True) 
+        rospy.init_node('tutorial4_mlp_node',anonymous=True)
         #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         self.jointPub = rospy.Publisher("joint_angles",JointAnglesWithSpeed,queue_size=10)
         # start with setting the initial positions of head and right arm
@@ -125,6 +125,6 @@ class tutorial3_cmac:
         rospy.spin()
 
 if __name__=='__main__':
-    node_instance = tutorial3_cmac()
-    node_instance.tutorial3_cmac_execute()
+    node_instance = tutorial4_mlp()
+    node_instance.tutorial4_mlp_execute()
 

@@ -123,6 +123,7 @@ class CMACNetwork:
         Error = []
         for i in range(0, DIM_OUTPUT):
             error = x_true[i] - x_pred[i]
+            # print('x_true:', x_true[i], 'x_pred:', x_pred[i])
             Error.append(error**2)
             # print('error:', error)
             for j in range(0, len(loc)):
@@ -156,8 +157,11 @@ class CMACNetwork:
                 x1_q, x2_q, y1_q, y2_q = self.quantization(self.x1[i], self.x2[i], self.y1[i], self.y2[i])
                 # print("xy", x1_q, x2_q, y1_q, y2_q)
                 error += self.train_step(y1_q, y2_q, x1_q, x2_q)
-                self.mapping(y1_q, y2_q)
-            print('error:', error)
+                xq_pred1, xq_pred2 = self.mapping(y1_q, y2_q)
+                x_pred1, x_pred2 = self.de_quantization(x1_q,x2_q)
+                print('x_pred:', x_pred1, x_pred2)
+                print('x_true:', self.x1[i], self.x2[i])
+            print('error:', error/TRAINING_SAMPLES)
         print(self.weights)
 
 
