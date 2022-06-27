@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 import csv
 import random
-
+import ffnn_nao_luisa as nn
 
 import HSV_Nao_blob_DET_v2 as NBD
 
@@ -25,6 +25,7 @@ class tutorial4_mlp:
         # For setting the stiffnes of single joints
         self.jointPub = 0
         # TDO: Initialize MLP here
+        self.ffnn = nn.FFNN(sizes=[2, 64, 64, 2])
 
 
     # Read in the blob position
@@ -38,21 +39,25 @@ class tutorial4_mlp:
             # Convert ROS Image message to OpenCV image
             src = bridge_instance.imgmsg_to_cv2(data,"bgr8") #rgb 8bit
             # current_frame = br.imgmsg_to_cv2(data)
-
+            rospy.loginfo(len(src))
             #[hkh]Getting x,y coordinate
             # cv_image = CVA.blob_detection(src)
             blob_detection_ret = NBD.blob_detection(src) #[hkh]
             if not isinstance(blob_detection_ret, type(None)):
                 self.blobX, self.blobY = blob_detection_ret
                 print('blobxy:', self.blobX, self.blobY )
+                array = np.array([self.blobX/300.0, self.blobY/300.0])
+                self.shoulderPitch, self.shoulderRoll = self.ffnn.forward_prediction(array)
+
+
                 # move arm according to cmac logic if blob is detected
                 # self.move_arm calls the cmac mapping
-                a,b,y1_q, y2_q =self.cmac.quantization(0, 0, self.blobX, self.blobY)
-                print('blob_input y12_quantized:', y1_q, y2_q)
-                x1_q, x2_q =self.cmac.mapping(y1_q, y2_q)
-                print('quantizedx:','x1_q,x2_q:', x1_q, x2_q)
-                self.shoulderPitch, self.shoulderRoll = self.cmac.de_quantization(x1_q, x2_q)
-                print('jointoutput:','x12', self.shoulderPitch, self.shoulderRoll)
+                #a,b,y1_q, y2_q =self.cmac.quantization(0, 0, self.blobX, self.blobY)
+                #print('blob_input y12_quantized:', y1_q, y2_q)
+                #x1_q, x2_q =self.cmac.mapping(y1_q, y2_q)
+                #print('quantizedx:','x1_q,x2_q:', x1_q, x2_q)
+                #self.shoulderPitch, self.shoulderRoll = self.cmac.de_quantization(x1_q, x2_q)
+                #print('jointoutput:','x12', self.shoulderPitch, self.shoulderRoll)
 
 
                 self.move_arm()
@@ -117,10 +122,12 @@ class tutorial4_mlp:
         #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         self.jointPub = rospy.Publisher("joint_angles",JointAnglesWithSpeed,queue_size=10)
         # start with setting the initial positions of head and right arm
-        self.set_initial_pos()
         self.set_stiffness(True)
-        self.cmac.execute()
+        #self.set_initial_pos()
+
+        #self.cmac.execute()
         rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
+
 
         rospy.spin()
 

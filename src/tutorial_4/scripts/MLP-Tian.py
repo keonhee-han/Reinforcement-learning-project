@@ -1,10 +1,12 @@
+import numpy as np
+
 #Network class
 class net(object):
     def __init__(self,L=300):
         #Constants
         self.dim_in = 784
         self.dim_out = 10
-        
+        self.ss = 0.01
         #Initialize weights
         self.W1 = np.random.randn(L,self.dim_in)
         self.W2 = np.random.randn(self.dim_out,L)
@@ -55,14 +57,14 @@ class net(object):
         #Hidden layer
         x = np.matmul(self.W1,x) + self.b1
         self.x_1 = x + 0 #x after the fully connected layer
-        x = self.sigmoid(x)
+        x = self.sigmoid(x)   # relu
         self.x_sigmoid = x + 0 #x after the sigmoid
         
         #Output layers
         x = np.matmul(self.W2,x) + self.b2
         self.x_2 = x + 0 #x afte second fully connected layer
         for i in range(x.shape[1]):
-            x[:,i] = self.softmax(x[:,i])
+            x[:,i] = self.sigmoid(x[:,i]) # change to sigmoid
         
         return x.squeeze()
     
@@ -89,10 +91,10 @@ class net(object):
         return 
     
     def step(self,step_size):
-        self.W1 = self.W1 - ss*self.W1_grad
-        self.b1 = self.b1 - ss*self.b1_grad
-        self.W2 = self.W2 - ss*self.W2_grad
-        self.b2 = self.b2 - ss*self.b2_grad
+        self.W1 = self.W1 - self.ss*self.W1_grad
+        self.b1 = self.b1 - self.ss*self.b1_grad
+        self.W2 = self.W2 - self.ss*self.W2_grad
+        self.b2 = self.b2 - self.ss*self.b2_grad
         return
 
     def backward(self, lam):
