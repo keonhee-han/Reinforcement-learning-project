@@ -10,12 +10,15 @@ import cv2
 import numpy as np
 import csv
 import random
+import cmac
 
 import HSV_Nao_blob_DET_v2 as NBD
 
 
+
 class tutorial3_cmac:
     def __init__(self):
+        self.cmac = cmac()
         self.blobX = 0
         self.blobY = 0
         self.blobSize = 0
@@ -55,6 +58,7 @@ class tutorial3_cmac:
     def move_arm(self):
 
         # for testing - random arm values
+        rospy.loginfo("------ here insrt CMAC logic -----")
         test_pitch = random.uniform(-1, 1)
         test_roll = random.uniform(-1, 0.1)
         self.set_joint_angles(test_pitch, "RShoulderPitch")
@@ -86,6 +90,7 @@ class tutorial3_cmac:
 
 
     def tutorial3_cmac_execute(self):
+        self.cmac.cmac_generate_weights()
         rospy.init_node('tutorial3_cmac_node',anonymous=True) 
         rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         rospy.Subscriber("/nao_robot/camera/top/camera/image_raw",Image,self.image_cb)
