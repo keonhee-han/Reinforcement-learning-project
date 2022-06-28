@@ -1,0 +1,23 @@
+Comparison of CMAC and MLP neural networks
+
+Training phase:
+
+General findings:
+
+- CMAC requiers less training data than the MLP neural network
+- Generalization: the CMAC has a so-called local generalization compared to the MLP, which means that its training algorithm only adjusts a small region of the mapping around the presented data point (hashing increases that area 	but since it is unpredictable, it can not be seen as enhanced generalization)
+- The generalization of the CMAC can be enhanced if the sampled training points are closer together
+- If we have a small number of fixed training points, the generalization performance is not as good as that of the MLP because the inter-point regions are hard to interpolate for the CMAC
+- Training of the CMAC requiers less time
+- the CMAC requires way more weight parameters than the MLP
+
+Findings during our implementation:
+
+- Receptive field: Larger receptive field of the CMAC requires more training but enhances the performance to a certain point: 	we found the optimum to be at recpetive field of 7, the perofrmance dropped significantly again for a receptive field of 15
+- Displacement: For a fixed receptive field of r = 3, we achieved the best relative generalization with a displacement of 3, 	and the worst generalization with a displacement of 7. However, non of them reached a generalization which can be seen as 	"good".
+- Dense and evenly distributed neurons enhance the performance of the CMAC
+
+Execution Phase:
+
+- MLP generalizes better than CMAC
+- CMAC is faster in execution than the MLP and requires less computing power
