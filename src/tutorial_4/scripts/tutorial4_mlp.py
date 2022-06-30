@@ -118,12 +118,12 @@ class tutorial4_mlp:
     def tutorial4_mlp_execute(self):
 
         # cmac training here!!!
-        rospy.init_node('tutorial4_mlp_node',anonymous=True)
+        rospy.init_node('tutorial4_mlp_node', anonymous=True)
         #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
-        self.jointPub = rospy.Publisher("joint_angles",JointAnglesWithSpeed,queue_size=10)
+        self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed,queue_size=10)
         # start with setting the initial positions of head and right arm
         self.set_stiffness(True)
-        #self.set_initial_pos()
+        # self.set_initial_pos()    #why disable it
 
         #self.cmac.execute()
         rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
