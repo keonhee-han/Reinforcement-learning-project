@@ -11,6 +11,8 @@ import cv2
 import numpy as np
 import csv
 import random
+from naoqi import ALProxy
+import sys
 
 
 class tutorial5_soccer:
@@ -60,6 +62,19 @@ class tutorial5_soccer:
         #print(str(joint_angles_to_set))
         self.jointPub.publish(joint_angles_to_set)
 
+    def set_joint_angles_list(self, head_angle_list, topic_list):
+        if len(head_angle_list) == len(topic_list):
+            for i in range(len(topic_list)):
+                head_angle = head_angle_list[i]
+                topic = topic_list[i]
+                joint_angles_to_set = JointAnglesWithSpeed()
+                joint_angles_to_set.joint_names.append(topic) # each joint has a specific name, look into the joint_state topic or google  # When I
+                joint_angles_to_set.joint_angles.append(head_angle) # the joint values have to be in the same order as the names!!
+                joint_angles_to_set.relative = False # if true you can increment positions
+                joint_angles_to_set.speed = 0.1 # keep this low if you can
+                #print(str(joint_angles_to_set))
+                self.jointPub.publish(joint_angles_to_set)
+
     # Moves its left hip back and forward and then goes back into its initial position
     def kick(self):
         self.set_stiffness(True)
@@ -77,7 +92,31 @@ class tutorial5_soccer:
         self.set_initial_pos()
         #self.set_joint_angles(0.352, "LHipPitch")
 
+    def set_initial_stand(self):
+        robotIP = '10.152.246.137'
+        try:
+            postureProxy = ALProxy('ALRobotPosture', robotIP, 9559)
+        except Exception, e:
+            print('could not create ALRobotPosture')
+            print('Error was', e)
+        postureProxy.goToPosture('Stand', 1.0)
+        print(postureProxy.getPostureFamily())
 
+    def one_foot_stand(self):
+        print('one foot mode')
+        self.set_stiffness(True)
+        #self.set_joint_angles(0.3, "LHipRoll")
+        position = [-0.20099592208862305, -0.10128593444824219, 1.8530300855636597, 0.16716408729553223, -1.188891887664795,
+               -0.03490658476948738, 0.6150920391082764, 0.2955999970436096, 0.052197933197021484, 0.17184996604919434,
+               0.12122797966003418, 0.23466014862060547, -0.1764519214630127, -0.08432793617248535,
+               0.052197933197021484, 0.07213997840881348, 0.2791459560394287, 0.2025299072265625, -0.3021559715270996,
+               -0.09046411514282227, 1.7457342147827148, -0.19485998153686523, 1.2118180990219116, 0.03685808181762695,
+               0.3573801517486572, 0.3255999684333801]
+        joints =['HeadYaw', 'HeadPitch', 'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
+                'LHand', 'LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll', 'RHipYawPitch',
+                'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll', 'RShoulderPitch', 'RShoulderRoll',
+                'RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
+        self.set_joint_angles_list(position, joints)
 
 
     # fix the joints to the initial positions for the standing position
@@ -154,10 +193,13 @@ class tutorial5_soccer:
     def tutorial5_soccer_execute(self):
 
         # cmac training here!!!
-        rospy.init_node('tutorial5_soccer_node',anonymous=True)
+        rospy.init_node('tutorial5_soccer_node', anonymous=True)
         self.set_stiffness(True)
         self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed, queue_size=10)
-        self.set_initial_pos()
+        self.set_initial_stand()
+        rospy.sleep(2.0)
+        self.one_foot_stand()
+
         #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb)
 
@@ -170,5 +212,7 @@ class tutorial5_soccer:
 
 if __name__=='__main__':
     node_instance = tutorial5_soccer()
+    #node_instance.one_foot_stand()
     node_instance.tutorial5_soccer_execute()
+    #node_instance.stand()
 
