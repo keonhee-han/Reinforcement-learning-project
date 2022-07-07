@@ -17,6 +17,10 @@ import sys
 
 LEG_MAX = 0.790477
 LEG_MIN = -0.379472
+RMax = 20
+MAX_STEPS = 10 # Guessed value
+DISCOUNT_FACTOR = 0.9
+Convergence_Threshold = 0.1
 
 class tutorial5_soccer:
     def __init__(self):
@@ -25,10 +29,14 @@ class tutorial5_soccer:
         # Variables for RL-DT 
         self.actions = {"move_right": 0, "move_left": 1, "kick": 2}
         self.stateSet = []          # initially zero, no states visited so far
-        self.train_epsiodes = 100   # random guess
+        self.train_episodes = 100   # random guess
         self.reward = {"move_leg": -1, "fall": -20, "kick_fail": -2, "goal": 20 }
         self.leg_state_abs = 0 #-0.379472 to 0.790477 -> discretized by 10 ~ 0.117 per bin
         self.leg_state_dis = 10   # 0 - 9, 10 for invalid
+        self.visits = {} # Key: (state, action) - Value: visits
+        self.steps_nearest_visited_state = {}
+        self.exploration = False
+        self.action_values = {} # Key: (state, action) - Value: value
 
     
     def discretize_leg(self):
@@ -77,8 +85,74 @@ class tutorial5_soccer:
     def check_policy(self):
         pass
 
+    def get_visits_state(self, state):
+        visits_value = 0
+        for action in self.actions:
+            visits_value += self.visits.get((state, action), 0)
+        return visits_value
+
+    def get_reward_state_action_pair(self, state, action):
+        # TODO implement
+        return 0
+
+    def get_next_states(self, state):
+        # TODO: Implement
+        return []
+
+    def get_prop_next_state_given_state_action(self, next_state, current_state, action):
+        # TODO: Implement
+        return 0
+
+    def get_next_state_action_value_greedy(self, state):
+        return max([self.action_values[(state, action)] for action in self.actions])
+
+    def check_convergence(self, action_values_temp):
+        for state in self.stateSet:
+            for action in self.actions:
+                if self.action_values[(state, action)] != action_values_temp[(state, action)]:
+                    return False
+        return True
+
     def compute_values(self):
-        pass
+
+        # Initialize all state's step counts
+        self.steps_nearest_visited_state = {x: sys.maxint for x in range(9)}
+        visits_values = []
+        for state in self.stateSet:
+            visits_value = self.get_visits_state(state)
+            visits_values.append(visits_value)
+            if visits_value > 0:
+                self.steps_nearest_visited_state[state] = 0
+        min_visits = min(visits_values)
+
+        # Perform value iteration on the model
+        action_values_temp = {}
+        converged = False
+        while not converged:
+            for state in self.stateSet:
+                for action in self.actions:
+                    if self.exploration and visits_value(state) == min_visits:
+                        # Unknown states are given exploration bonus
+                        action_values_temp[(state, action)] = RMax
+                    elif self.steps_nearest_visited_state[state] > MAX_STEPS:
+                        action_values_temp[(state, action)] = RMax
+                    else:
+                        # Update remaining state's action values
+                        action_values_temp[(state, action)] = self.get_reward_state_action_pair(state, action)
+                        for next_state in self.get_next_states(state):
+                            if next_state not in self.stateSet:
+                                self.stateSet.append(next_state)
+                                for next_action in self.actions:
+                                    self.visits[(next_state, next_action)] = 0
+                            # Update action-values using Bellman Equation
+                            action_values_temp[(state, action)] += \
+                                DISCOUNT_FACTOR * \
+                                self.get_prop_next_state_given_state_action(next_state, state, action) * \
+                                self.get_next_state_action_value_greedy(next_state)
+            converged = self.check_convergence(action_values_temp)
+            self.action_values = action_values_temp
+
+
 
 
 
@@ -165,7 +239,7 @@ class tutorial5_soccer:
         robotIP = '10.152.246.137'
         try:
             postureProxy = ALProxy('ALRobotPosture', robotIP, 9559)
-        except Exception, e:
+        except Exception e:
             print('could not create ALRobotPosture')
             print('Error was', e)
         postureProxy.goToPosture('Stand', 1.0)
