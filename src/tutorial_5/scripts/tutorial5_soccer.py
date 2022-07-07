@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from logging import StringTemplateStyle
 import random
 import rospy
 from std_msgs.msg import String, Header
@@ -14,26 +15,86 @@ import random
 from naoqi import ALProxy
 import sys
 
+LEG_MAX = 0.790477
+LEG_MIN = -0.379472
 
 class tutorial5_soccer:
     def __init__(self):
-        self.blobX = 0
-        self.blobY = 0
-        self.blobSize = 0
-        self.shoulderRoll = 0
-        self.shoulderPitch = 0
-        # For setting the stiffnes of single joints
         self.jointPub = 0
+
+        # Variables for RL-DT 
+        self.actions = {"move_right": 0, "move_left": 1, "kick": 2}
+        self.stateSet = []          # initially zero, no states visited so far
+        self.train_epsiodes = 100   # random guess
+        self.reward = {"move_leg": -1, "fall": -20, "kick_fail": -2, "goal": 20 }
+        self.leg_state_abs = 0 #-0.379472 to 0.790477 -> discretized by 10 ~ 0.117 per bin
+        self.leg_state_dis = 10   # 0 - 9, 10 for invalid
+
+    
+    def discretize_leg(self):
+        self.leg_state_dis = np.round((self.leg_state_abs - LEG_MIN) / (LEG_MAX - LEG_MIN) * 9)
+
+
+    def training(self):
+        
+        # 1. get next action a from policy (?)
+        # 2. execute action a -> move_left, move_right or kick
+        # 3. get reward
+        # 4. observe new state -> just read in leg angle again
+        # 5. check if new state has already been visited
+        # 6. if not, add it to the stateSet in add_visited_states
+        # 7. increase the state-action visits counter
+        # 8. Update model -> many substeps
+        # 9. Check policy, if exploration/exploitation mode
+        # 10. Compute values -> many substeps
+        pass
+
+    # 1.
+    def get_action_policy(self):
+        pass
+
+    # 3.
+    def get_reward(self):
+        # maybe with keyboard instead of tactile buttons -> 4 types of reward
+        pass
+
+    # 6.
+    def add_visited_states(self):
+        for state in self.stateSet:
+            if state == self.leg_state_dis:
+                return
+        self.stateSet.append(self.leg_state_dis)
+
+    # 7. 
+    def increase_visits(self):
+        pass
+
+    # 8.
+    def update_model(self):
+        pass
+    
+    # 9.
+    def check_policy(self):
+        pass
+
+    def compute_values(self):
+        pass
+
+
 
     # Callback function for reading in the joint values
     def joints_cb(self, data):
-        #rospy.loginfo("joint states "+str(data.name)+str(data.position))
-        # store current joint information in class variables
         self.joint_names = data.name  # LHipRoll for move in or move out
         self.joint_angles = data.position
         self.joint_velocities = data.velocity
+        # get leg state
+        for idx, names in enumerate(self.joint_names):
+            if names == "LHipRoll":
+                self.leg_state_abs = self.joint_angles[idx]
+                self.discretize_leg()
+                return
+    
 
-        pass
 
     # Read in the goal position!
     # TODO: Aruco marker detection
@@ -41,17 +102,11 @@ class tutorial5_soccer:
         bridge_instance = CvBridge()
 
 
+    def move_left(self):
+        pass
 
-    # TODO: put in cmac logic!
-    # input to cmac mapping: self.blobX, self.blobY
-    def move_arm(self):
-        rospy.loginfo("---------------- here starts cmac movement -----------------------")
-        # for testing - random arm values
-
-        self.set_joint_angles(self.shoulderPitch, "RShoulderPitch")
-        self.set_joint_angles(self.shoulderRoll, "RShoulderRoll")
-
-
+    def move_right(self):
+        pass
 
     def set_joint_angles(self, head_angle, topic):
         joint_angles_to_set = JointAnglesWithSpeed()
@@ -274,6 +329,20 @@ class tutorial5_soccer:
         #rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
 
         rospy.spin()
+
+
+class RLDT:
+    def __init__(self):
+        # Set of actions
+        self.actions = {"move_right": 0, "move_left": 1, "kick": 2}
+        self.stateSet = []          # initially zero, no states visited so far
+        self.train_epsiodes = 100   # random guess
+        self.reward = {"move_leg": -1, "fall": -20, "kick_fail": -2, "goal": 20 }
+
+    def training(self):
+
+
+
 
 
 if __name__=='__main__':
