@@ -14,39 +14,81 @@ import csv
 import random
 from naoqi import ALProxy
 import sys
+from MDP import *
 
 LEG_MAX = 0.790477
 LEG_MIN = -0.379472
 
 class tutorial5_soccer:
-    def __init__(self):
+    def __init__(self, initial_states):
         self.jointPub = 0
+        states = range(10)  # number of states (assume discretized leg distance from the hip is 10
+        terminal_state = {0, 9}  ##[hkh] Let assume at the end of leg movement will be end state ## depending on DT Terminal states are differed
 
-        # Variables for RL-DT 
-        self.actions = {"move_right": 0, "move_left": 1, "kick": 2}
-        self.stateSet = []          # initially zero, no states visited so far
+        # Initial variables for RL-DT
+        self.exp_ = False
+        self.S_M = set()   # set type to store and check visited state per episode
+        self.initial_state = initial_states
+        ##[hkh] initialize each visit for each state zero for each state
+        self.actions = {"move_right": 0, "move_left": 0, "kick": 0}
+        # self.actions = ["move_right", "move_left", "kick"]
+        self.stateSet = {s: self.actions for s in states}  # =visits: state-action pair is initially zero, no states visited so far
+        self.G_t = 0 # total future reward up to given time t
         self.train_epsiodes = 100   # random guess
         self.reward = {"move_leg": -1, "fall": -20, "kick_fail": -2, "goal": 20 }
+
         self.leg_state_abs = 0 #-0.379472 to 0.790477 -> discretized by 10 ~ 0.117 per bin
         self.leg_state_dis = 10   # 0 - 9, 10 for invalid
 
-    
+        ##[hkh] we have to implement DT for transition probability. DT
+        # (reminder: in DT example, the state should be vaild within the possible range.
+        # e.g. In A=L node, if True for x=0 meaning no movement, then its output is either 0:no movement as true, -1:moved left
+        # In A=R, if x=1: moved right as true, x=0: idle. its output 0 as True or Y=1 as False.
+
     def discretize_leg(self):
         self.leg_state_dis = np.round((self.leg_state_abs - LEG_MIN) / (LEG_MAX - LEG_MIN) * 9)
 
+    def state_monitor(self, monitoring_time = 10):
+        return reward_type
 
-    def training(self):
-        
-        # 1. get next action a from policy (?)
-        # 2. execute action a -> move_left, move_right or kick
-        # 3. get reward
-        # 4. observe new state -> just read in leg angle again
-        # 5. check if new state has already been visited
-        # 6. if not, add it to the stateSet in add_visited_states
-        # 7. increase the state-action visits counter
-        # 8. Update model -> many substeps
-        # 9. Check policy, if exploration/exploitation mode
-        # 10. Compute values -> many substeps
+    def opt_policy(self, state, next_action):   # optimal policy functio that chooses the action maximizing the reward
+
+    def transition_func(self, state, action):
+        return new_state
+
+    def RL_DT(self, RMax_, s_):   # execute action at given state
+        self.S_M.add(s_)        # adding state to set of states visited initially
+
+        while True: # end if s <- s'
+            # 1. get next action a from policy (?)
+            a_ = opt_policy(s_, a_current) #[hkh] its Utility func is determined by reward and transition func that are determined by DT
+
+            # 2. execute action a -> move_left, move_right or kick
+            if a_ == "kick": self.kick() elif a_ == "move_left": self.move_in() elif a_ == "move_right": self.move_out()
+            else: print("Nothing is given for optimal policy!")
+            reward_type = self.state_monitor(monitoring_time = 10) # After taking an action, monitoring the state of the robot so that we can reward for that state-action pair.
+
+            # 3. Upon taking an action, receives reward
+            self.G_t += self.reward[reward_type] - self.reward["move_leg"]  # According to the algorithm, punish with amount -2 as it's moved.
+            self.stateSet[s_][a_] += 1  # increase the state-action visits counter
+
+            # 4. reaches a new state s' <=> observe new state -> just read in leg angle again
+            s_new = transition_func(s_, a_)
+
+            # 5. check if new state has already been visited <=> check if it's in S_M
+            if not s_new in self.S_M:   # if not, add it to the stateSet in add_visited_states
+                self.S_M.add(s_new)
+                ## [hkh] new state action initializaiton is already done in constructor.
+
+            # 6. Update model -> many substeps
+            P_M, R_M, CH_ = self.update_model()    # taking function from Lennard part.
+
+            # 7. Check policy, if exploration/exploitation mode
+            exp_ = self.check_model
+
+            # 8. Compute values -> many substeps
+            if CH_:
+                self.compute_values(RMax_, P_M, R_M, self.S_M, exp_)
         pass
 
     # 1.
@@ -54,9 +96,9 @@ class tutorial5_soccer:
         pass
 
     # 3.
-    def get_reward(self):
+    def get_reward(self):   # Reward function: R(s,a)
         # maybe with keyboard instead of tactile buttons -> 4 types of reward
-        pass
+
 
     # 6.
     def add_visited_states(self):
@@ -78,7 +120,7 @@ class tutorial5_soccer:
         pass
 
     def compute_values(self):
-        pass
+
 
 
 
@@ -100,13 +142,6 @@ class tutorial5_soccer:
     # TODO: Aruco marker detection
     def image_cb(self,data):
         bridge_instance = CvBridge()
-
-
-    def move_left(self):
-        pass
-
-    def move_right(self):
-        pass
 
     def set_joint_angles(self, head_angle, topic):
         joint_angles_to_set = JointAnglesWithSpeed()
@@ -331,23 +366,24 @@ class tutorial5_soccer:
         rospy.spin()
 
 
-class RLDT:
+class RL_DT(tutorial5_soccer):
     def __init__(self):
         # Set of actions
         self.actions = {"move_right": 0, "move_left": 1, "kick": 2}
-        self.stateSet = []          # initially zero, no states visited so far
+        self.state_action = {s: 0 for s in self.states}   # state-action pair is initially zero, no states visited so far
         self.train_epsiodes = 100   # random guess
         self.reward = {"move_leg": -1, "fall": -20, "kick_fail": -2, "goal": 20 }
+
 
     def training(self):
 
 
 
-
-
 if __name__=='__main__':
+    ##[hkh]
+    MDP(init = init, actlist= action_list, terminals= terminal_state, states=states, transitions=transition_model)
+
     node_instance = tutorial5_soccer()
     #node_instance.one_foot_stand()
     node_instance.tutorial5_soccer_execute()
     #node_instance.stand()
-
