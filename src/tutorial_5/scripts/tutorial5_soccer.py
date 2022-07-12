@@ -14,7 +14,8 @@ import csv
 import random
 from naoqi import ALProxy
 import sys
-from MDP import *
+# from MDP import *
+from update_model import *
 
 LEG_MAX = 0.790477
 LEG_MIN = -0.379472
@@ -45,17 +46,6 @@ class tutorial5_soccer:
         # e.g. In A=L node, if True for x=0 meaning no movement, then its output is either 0:no movement as true, -1:moved left
         # In A=R, if x=1: moved right as true, x=0: idle. its output 0 as True or Y=1 as False.
 
-    def discretize_leg(self):
-        self.leg_state_dis = np.round((self.leg_state_abs - LEG_MIN) / (LEG_MAX - LEG_MIN) * 9)
-
-    def state_monitor(self, monitoring_time = 10):
-        return reward_type
-
-    def opt_policy(self, state, next_action):   # optimal policy functio that chooses the action maximizing the reward
-
-    def transition_func(self, state, action):
-        return new_state
-
     def RL_DT(self, RMax_, s_):   # execute action at given state
         self.S_M.add(s_)        # adding state to set of states visited initially
 
@@ -81,7 +71,7 @@ class tutorial5_soccer:
                 ## [hkh] new state action initializaiton is already done in constructor.
 
             # 6. Update model -> many substeps
-            P_M, R_M, CH_ = self.update_model()    # taking function from Lennard part.
+            P_M, R_M, CH_ = Algorithm_2.update_model()    # taking function from Lennard part.
 
             # 7. Check policy, if exploration/exploitation mode
             exp_ = self.check_model
@@ -90,6 +80,17 @@ class tutorial5_soccer:
             if CH_:
                 self.compute_values(RMax_, P_M, R_M, self.S_M, exp_)
         pass
+
+    def discretize_leg(self):
+        self.leg_state_dis = np.round((self.leg_state_abs - LEG_MIN) / (LEG_MAX - LEG_MIN) * 9)
+
+    def state_monitor(self, monitoring_time = 10):
+        return reward_type
+
+    def opt_policy(self, state, next_action):   # optimal policy functio that chooses the action maximizing the reward
+
+    def transition_func(self, state, action):
+        return new_state
 
     # 1.
     def get_action_policy(self):
@@ -109,10 +110,6 @@ class tutorial5_soccer:
 
     # 7. 
     def increase_visits(self):
-        pass
-
-    # 8.
-    def update_model(self):
         pass
     
     # 9.
@@ -381,7 +378,7 @@ class RL_DT(tutorial5_soccer):
 
 if __name__=='__main__':
     ##[hkh]
-    MDP(init = init, actlist= action_list, terminals= terminal_state, states=states, transitions=transition_model)
+    # MDP(init = init, actlist= action_list, terminals= terminal_state, states=states, transitions=transition_model)
 
     node_instance = tutorial5_soccer()
     #node_instance.one_foot_stand()
