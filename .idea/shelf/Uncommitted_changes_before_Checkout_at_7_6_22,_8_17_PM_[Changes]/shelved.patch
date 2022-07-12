@@ -1,0 +1,60 @@
+Index: .idea/BIHR_Nao2022.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<module type=\"PYTHON_MODULE\" version=\"4\">\n  <component name=\"NewModuleRootManager\">\n    <content url=\"file://$MODULE_DIR$\" />\n    <orderEntry type=\"inheritedJdk\" />\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\n  </component>\n  <component name=\"PyDocumentationSettings\">\n    <option name=\"format\" value=\"PLAIN\" />\n    <option name=\"myDocStringFormat\" value=\"Plain\" />\n  </component>\n  <component name=\"TestRunnerService\">\n    <option name=\"PROJECT_TEST_RUNNER\" value=\"py.test\" />\n  </component>\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/BIHR_Nao2022.iml b/.idea/BIHR_Nao2022.iml
+--- a/.idea/BIHR_Nao2022.iml	(revision 3db4801adf249f5e34613fdb602f9314195fa229)
++++ b/.idea/BIHR_Nao2022.iml	(date 1656863117393)
+@@ -2,8 +2,10 @@
+ <module type="PYTHON_MODULE" version="4">
+   <component name="NewModuleRootManager">
+     <content url="file://$MODULE_DIR$" />
+-    <orderEntry type="inheritedJdk" />
++    <orderEntry type="jdk" jdkName="Python 3.7 (AI_AIMA)" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
++    <orderEntry type="library" name="workspace" level="project" />
++    <orderEntry type="library" name="ROS" level="project" />
+   </component>
+   <component name="PyDocumentationSettings">
+     <option name="format" value="PLAIN" />
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"ProjectRootManager\" version=\"2\" project-jdk-name=\"Python 3.5\" project-jdk-type=\"Python SDK\" />\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision 3db4801adf249f5e34613fdb602f9314195fa229)
++++ b/.idea/misc.xml	(date 1656863117449)
+@@ -1,4 +1,4 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.5" project-jdk-type="Python SDK" />
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (AI_AIMA)" project-jdk-type="Python SDK" />
+ </project>
+\ No newline at end of file
+Index: src/tutorial_4/package.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\"?>\n<package format=\"2\">\n  <name>tutorial_3</name>\n  <version>0.0.0</version>\n  <description>The tutorial_3 package</description>\n\n  <!-- One maintainer tag required, multiple allowed, one person per tag -->\n  <!-- Example:  -->\n  <!-- <maintainer email=\"jane.doe@example.com\">Jane Doe</maintainer> -->\n  <maintainer email=\"bio@todo.todo\">bio</maintainer>\n\n\n  <!-- One license tag required, multiple allowed, one license per tag -->\n  <!-- Commonly used license strings: -->\n  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->\n  <license>TODO</license>\n\n\n  <!-- Url tags are optional, but multiple are allowed, one per tag -->\n  <!-- Optional attribute type can be: website, bugtracker, or repository -->\n  <!-- Example: -->\n  <!-- <url type=\"website\">http://wiki.ros.org/tutorial_3</url> -->\n\n\n  <!-- Author tags are optional, multiple are allowed, one per tag -->\n  <!-- Authors do not have to be maintainers, but could be -->\n  <!-- Example: -->\n  <!-- <author email=\"jane.doe@example.com\">Jane Doe</author> -->\n\n\n  <!-- The *depend tags are used to specify dependencies -->\n  <!-- Dependencies can be catkin packages or system dependencies -->\n  <!-- Examples: -->\n  <!-- Use depend as a shortcut for packages that are both build and exec dependencies -->\n  <!--   <depend>roscpp</depend> -->\n  <!--   Note that this is equivalent to the following: -->\n  <!--   <build_depend>roscpp</build_depend> -->\n  <!--   <exec_depend>roscpp</exec_depend> -->\n  <!-- Use build_depend for packages you need at compile time: -->\n  <!--   <build_depend>message_generation</build_depend> -->\n  <!-- Use build_export_depend for packages you need in order to build against this package: -->\n  <!--   <build_export_depend>message_generation</build_export_depend> -->\n  <!-- Use buildtool_depend for build tool packages: -->\n  <!--   <buildtool_depend>catkin</buildtool_depend> -->\n  <!-- Use exec_depend for packages you need at runtime: -->\n  <!--   <exec_depend>message_runtime</exec_depend> -->\n  <!-- Use test_depend for packages you need only for testing: -->\n  <!--   <test_depend>gtest</test_depend> -->\n  <!-- Use doc_depend for packages you need only for building documentation: -->\n  <!--   <doc_depend>doxygen</doc_depend> -->\n  <buildtool_depend>catkin</buildtool_depend>\n  <build_depend>rospy</build_depend>\n  <build_depend>std_msgs</build_depend>\n  <build_export_depend>rospy</build_export_depend>\n  <build_export_depend>std_msgs</build_export_depend>\n  <exec_depend>rospy</exec_depend>\n  <exec_depend>std_msgs</exec_depend>\n\n\n  <!-- The export tag contains other, unspecified, tags -->\n  <export>\n    <!-- Other tools can request additional information be placed here -->\n\n  </export>\n</package>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/tutorial_4/package.xml b/src/tutorial_4/package.xml
+--- a/src/tutorial_4/package.xml	(revision 3db4801adf249f5e34613fdb602f9314195fa229)
++++ b/src/tutorial_4/package.xml	(date 1656856245906)
+@@ -1,8 +1,8 @@
+ <?xml version="1.0"?>
+ <package format="2">
+-  <name>tutorial_3</name>
++  <name>tutorial_4</name>
+   <version>0.0.0</version>
+-  <description>The tutorial_3 package</description>
++  <description>The tutorial_4 package</description>
+ 
+   <!-- One maintainer tag required, multiple allowed, one person per tag -->
+   <!-- Example:  -->
