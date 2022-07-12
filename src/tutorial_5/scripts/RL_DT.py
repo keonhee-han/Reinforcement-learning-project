@@ -10,12 +10,33 @@ class RL_DT:
         self.current_state = current_state # Current state of robot leg
         self.next_state = current_state
         self.Rmax = Rmax # For exploration mode, giving least visited state some reward for making explotation
-        self.Pm 
-        self.Rm 
-        self.Ch
+        self.transitionTree = tree.DecisionTreeClassifier()
+        self.rewardTree = tree.DecisionTreeClassifier()
+        self.Pm = np.zeros((10,3))
+        self.Rm = np.zeros((10,3))
+        self.inputTree = np.zeros(2)
+        self.Ch=False
         self.exp
+        self.deltaTransition = 0
+        self.deltaReward = 0
+
+    def add_experience_trans(self, state, action, state_change):
+        tmp = np.append(np.array(action), np.array(state))
+        self.inputTree = np.vstack((self.inputTree, tmp))
+        self.deltaTransition = np.append(self.deltaTransition, state_change)
+        self.transitionTree = self.transitionTree.fit(self.inputTree, self.deltaTransition)
+        return True
+
+    def add_experience_reward(self,  reward):
+        self.deltaReward = np.append(self.deltaReward, reward)
+        self.rewardTree = self.rewardTree.fit(self.inputTree, self.deltaReward) # must be of form samples, 
+        return True
+
 
     def update_model(self,action,reward):
+        rel_state_change = self.current_state - self.next_state # should result in -1, 0 or 1
+        self.Ch = self.add_experience_trans(self.current_state, action, rel_state_change)
+
 
     def check_model(self):
     #Algorithm one loop part(Algorithm-1 RL-DT from line 5 to 19)
