@@ -71,7 +71,7 @@ class tutorial5_soccer:
                 ## [hkh] new state action initializaiton is already done in constructor.
 
             # 6. Update model -> many substeps
-            P_M, R_M, CH_ = Algorithm_2.update_model()    # taking function from Lennard part.
+            P_M, R_M, CH_ = Algorithm_2.update_model()
 
             # 7. Check policy, if exploration/exploitation mode
             exp_ = self.check_model
@@ -361,19 +361,6 @@ class tutorial5_soccer:
         #rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
 
         rospy.spin()
-
-
-class RL_DT(tutorial5_soccer):
-    def __init__(self):
-        # Set of actions
-        self.actions = {"move_right": 0, "move_left": 1, "kick": 2}
-        self.state_action = {s: 0 for s in self.states}   # state-action pair is initially zero, no states visited so far
-        self.train_epsiodes = 100   # random guess
-        self.reward = {"move_leg": -1, "fall": -20, "kick_fail": -2, "goal": 20 }
-
-
-    def training(self):
-
 
 
 if __name__=='__main__':
