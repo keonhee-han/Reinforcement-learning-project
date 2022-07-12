@@ -32,11 +32,24 @@ class RL_DT:
         self.rewardTree = self.rewardTree.fit(self.inputTree, self.deltaReward) # must be of form samples, 
         return True
 
+    def combine_results(self, state, action):
+        prob = np.max(self.transitionTree.predict_proba([[action,state]]))
+        return prob
+
+     def get_predictions(self, state, action):
+        return self.rewardTree.predict([[action, state]])
 
     def update_model(self,action,reward):
         rel_state_change = self.current_state - self.next_state # should result in -1, 0 or 1
         self.Ch = self.add_experience_trans(self.current_state, action, rel_state_change)
-
+        self.add_experience_reward(reward)
+        for state in range(len(self.sM)):
+            for action in range(len(self.A)):
+                self.Pm[state, action] = self.combine_results(state, action)
+                self.Rm[state, action] = self.get_predictions(state, action)
+        print(self.Pm)
+        print(self.Rm)
+        return True
 
     def check_model(self):
     #Algorithm one loop part(Algorithm-1 RL-DT from line 5 to 19)
@@ -52,9 +65,10 @@ class RL_DT:
             # 4. Update model so (self.pm,self.rm and self.ch), as input just action and reward used because
             # other variable defined in class as public, so we have access and there is no need to return because 
             # they are also public
-            self.update_model(action,reward)
+            self.Ch = self.update_model(action,reward)
             # 5. model check whether it is exporation mode or not
             # no input again global varialbe
+            
             self.check_model()
             # 6. if CH is true update q table us
             if self.Ch:
