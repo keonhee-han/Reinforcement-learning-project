@@ -51,6 +51,16 @@ class RL_DT:
         print(self.Rm)
         return True
 
+    def check_model():
+
+    def execute_action(action):
+
+
+    def compute_values(self):
+        
+
+
+
     def check_model(self):
     #Algorithm one loop part(Algorithm-1 RL-DT from line 5 to 19)
     def execute(self):
@@ -68,7 +78,7 @@ class RL_DT:
             self.Ch = self.update_model(action,reward)
             # 5. model check whether it is exporation mode or not
             # no input again global varialbe
-            
+
             self.check_model()
             # 6. if CH is true update q table us
             if self.Ch:
