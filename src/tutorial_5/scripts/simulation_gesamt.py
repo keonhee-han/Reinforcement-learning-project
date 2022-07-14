@@ -28,16 +28,7 @@ class Central:
         self.joint_velocities = data.velocity
 
 
-    def determine_state(self, state, action):
-        print("-----", state, action)
-        if action == 0:
-            state = state - 1
-        elif action == 1:
-            state = state +1
-        elif action == 2:
-            state = state
-        print("-----", state, action)
-        return state
+    
 
 
     def central_execute(self, env):
@@ -75,6 +66,7 @@ class Central:
                 env.compute_values(exp)
 
         print(env.Q)
+        
 
     def execute(self, env):
         env.state = 7           # arbitrary test state
