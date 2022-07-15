@@ -26,17 +26,20 @@ class tutorial5_soccer:
         states = range(10)  # number of states (assume discretized leg distance from the hip is 10
         # terminal_state = {0, 9}  ##[hkh] Let assume at the end of leg movement will be end state ## depending on DT Terminal states are differed
 
+        gamma = 0.9 # discount_factor
         # Initial variables for RL-DT
         self.exp_ = False
-        self.S_M = set()   # set type to store and check visited state per episode
+        # self.S_M = set()   # set type to store and check visited state per episode
         self.initial_state = initial_states
         ##[hkh] initialize each visit for each state zero for each state
         self.actions = {"move_right": 0, "move_left": 0, "kick": 0}
         # self.actions = ["move_right", "move_left", "kick"]
-        self.stateSet = {s: self.actions for s in states}  # =visits: state-action pair is initially zero, no states visited so far
-        self.G_t = 0 # total future reward up to given time t
         self.train_epsiodes = 100   # random guess
-        self.reward = {"move_leg": -1, "fall": -20, "kick_fail": -2, "goal": 20 }
+        self.reward = {"move_leg": -1, "fall": -20, "fail_goal": -2, "goal": 20 }
+        self.G_t = 0 # total future reward up to given time t (for one episode)
+        ## Q-table & visiting table
+        self.Q_table = np.array((len(state_Set)))
+        self.stateSet = {s: self.actions for s in states}  # =visits: state-action pair is initially zero, no states visited so far
 
         self.leg_state_abs = 0 #-0.379472 to 0.790477 -> discretized by 10 ~ 0.117 per bin
         self.leg_state_dis = 10   # 0 - 9, 10 for invalid
@@ -46,12 +49,12 @@ class tutorial5_soccer:
         # e.g. In A=L node, if True for x=0 meaning no movement, then its output is either 0:no movement as true, -1:moved left
         # In A=R, if x=1: moved right as true, x=0: idle. its output 0 as True or Y=1 as False.
 
-    def RL_DT(self, RMax_, s_):   # execute action at given state
-        self.S_M.add(s_)        # adding state to set of states visited initially
+    def RL_DT(self, RMax_, s_):   # execute action at given state (as discretized state indices)
+        # self.S_M.add(s_)        # adding state to set of states visited initially
         model_ = Algorithm_2()
         while True: # end if s <- s'
             # 1. get next action a from policy (?)
-            a_ = opt_policy(s_, a_current) #[hkh] its Utility func is determined by reward and transition func that are determined by DT
+            a_ = self.opt_policy(s_, a_current) #[hkh] its Utility func is determined by reward and transition func that are determined by DT
 
             # 2. execute action a -> move_left, move_right or kick
             if a_ == "kick": self.kick() elif a_ == "move_left": self.move_in() elif a_ == "move_right": self.move_out()
@@ -61,6 +64,7 @@ class tutorial5_soccer:
 
             # 3. Upon taking an action, receives reward
             self.G_t += self.reward[reward_type] - self.reward["move_leg"]  # According to the algorithm, punish with amount -2 as it's moved.
+            self.Q_table[s_] +=
             self.stateSet[s_][a_] += 1  # increase the state-action visits counter
 
             # 4. reaches a new state s' <=> observe new state -> just read in leg angle again
@@ -81,7 +85,12 @@ class tutorial5_soccer:
             # 8. Compute values -> many substeps
             if CH_:
                 self.compute_values(RMax_, P_M, R_M, self.S_M, exp_)
-        pass
+
+            # If kick happened, end a sequence as one episode
+            if a_ == "kick": break
+
+    def opt_policy(self, state, action):
+
 
     def discretize_leg(self):
         self.leg_state_dis = np.round((self.leg_state_abs - LEG_MIN) / (LEG_MAX - LEG_MIN) * 9)
