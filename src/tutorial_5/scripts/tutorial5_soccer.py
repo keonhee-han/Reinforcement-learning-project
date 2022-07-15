@@ -58,7 +58,7 @@ class tutorial5_soccer:
         joint_angles_to_set.joint_names.append(topic) # each joint has a specific name, look into the joint_state topic or google  # When I
         joint_angles_to_set.joint_angles.append(head_angle) # the joint values have to be in the same order as the names!!
         joint_angles_to_set.relative = False # if true you can increment positions
-        joint_angles_to_set.speed = 0.08 # keep this low if you can
+        joint_angles_to_set.speed = 0.03 # keep this low if you can
         #print(str(joint_angles_to_set))
         self.jointPub.publish(joint_angles_to_set)
 
@@ -68,7 +68,7 @@ class tutorial5_soccer:
         joint_angles_to_set.joint_names.append(topic) # each joint has a specific name, look into the joint_state topic or google  # When I
         joint_angles_to_set.joint_angles.append(head_angle) # the joint values have to be in the same order as the names!!
         joint_angles_to_set.relative = False # if true you can increment positions
-        joint_angles_to_set.speed = 0.4 # keep this low if you can
+        joint_angles_to_set.speed = 0.6 # keep this low if you can
         #print(str(joint_angles_to_set))
         self.jointPub.publish(joint_angles_to_set)
 
@@ -100,7 +100,7 @@ class tutorial5_soccer:
         self.set_joint_angles(0.48, "LHipPitch")
         rospy.sleep(1.0)
 
-        self.set_joint_angles_fast(-1.1, "LHipPitch")
+        self.set_joint_angles_fast(-0.8, "LHipPitch")
         # Move the foot back after kick
         rospy.sleep(2.0)
         self.one_foot_stand()
@@ -124,10 +124,18 @@ class tutorial5_soccer:
         # using the rostopic echo to get the desired joint states, not perfect
         # rostopic echo /joint_states
 
-        # way1 easy to fall when kick
-        position = [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.19937801361083984, -1.9574260711669922,
+        """
+                position_ori = [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.19937801361083984, -1.9574260711669922,
                     -1.5124820470809937, -0.8882279396057129, 0.32840001583099365, -0.13955211639404297, 0.31297802925109863,
                     -0.3911280632019043, 1.4679961204528809, -0.8943638801574707, -0.12114405632019043, -0.13955211639404297,
+                    0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.07980990409851074, -0.3282339572906494,
+                    1.676703929901123, -0.45717406272888184, 1.1964781284332275, 0.18872404098510742, 0.36965203285217285, 0.397599995136261]
+        """
+
+        # way1
+        position = [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.19937801361083984, -1.9574260711669922,
+                    -1.5124820470809937, -0.8882279396057129, 0.32840001583099365, -0.13955211639404297, 0.31297802925109863,
+                    -0.3911280632019043, 1.2, -0.4, -0.12114405632019043, -0.13955211639404297,
                     0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.07980990409851074, -0.3282339572906494,
                     1.676703929901123, -0.45717406272888184, 1.1964781284332275, 0.18872404098510742, 0.36965203285217285, 0.397599995136261]
         '''
@@ -143,10 +151,11 @@ class tutorial5_soccer:
         # way3 [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.15335798263549805, -1.9129400253295898, -1.5032780170440674, -1.199629783630371, 0.32760000228881836, -0.22852396965026855, 0.4019498825073242, -0.3911280632019043, 1.4679961204528809, -0.8943638801574707, -0.12114405632019043, -0.22852396965026855, 0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.08594608306884766, -0.3052239418029785, 1.6905097961425781, -0.44950389862060547, 1.1995460987091064, 0.1994619369506836, 0.3512439727783203, 0.3952000141143799]
 
         # way2 not ok [-0.015382051467895508, 0.5120565295219421, 1.8346221446990967, 0.1779019832611084, -1.937483787536621, -1.5124820470809937, -1.0692400932312012, 0.32760000228881836, -0.11807608604431152, 0.31297802925109863, -0.3911280632019043, 1.4664621353149414, -0.8943638801574707, -0.12114405632019043, -0.11807608604431152, 0.3697359561920166, 0.2530679702758789, -0.09232791513204575, -0.07665801048278809, -0.269942045211792, 1.6951122283935547, -0.4617760181427002, 1.1949440240859985, 0.2025299072265625, 0.3589141368865967, 0.39399999380111694]
-        joints =['HeadYaw', 'HeadPitch', 'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
-                'LHand', 'LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll', 'RHipYawPitch',
-                'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll', 'RShoulderPitch', 'RShoulderRoll',
-                'RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
+        joints =['HeadYaw', 'HeadPitch', 'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw',
+                 'LElbowRoll', 'LWristYaw','LHand', 'LHipYawPitch', 'LHipRoll',
+                 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll', 'RHipYawPitch',
+                 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
+                 'RShoulderPitch', 'RShoulderRoll','RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
         self.set_joint_angles_list(position, joints)
 
     def move_in(self):
@@ -262,7 +271,7 @@ class tutorial5_soccer:
         self.set_stiffness(True)
         self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed, queue_size=10)
 
-        self.set_initial_stand()
+        # self.set_initial_stand()
         rospy.sleep(2.0)
         self.one_foot_stand()
         #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
