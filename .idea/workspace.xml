@@ -1,37 +1,257 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3baa29f6-c9c8-4c64-a436-9117b0719e30" name="Changes" comment="" />
+    <list default="true" id="5161acac-f51a-4039-a6c9-10b8b6535be9" name="Changes" comment="RL_DT_draft_v2_hkh">
+      <change beforePath="$PROJECT_DIR$/src/tutorial_5/scripts/tutorial5_soccer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tutorial_5/scripts/tutorial5_soccer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tutorial_5/scripts/update_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tutorial_5/scripts/update_model.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="BATU_Algorithm_3" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="MIXED" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectId" id="29Nh0HfJHtSCePIXrDEcLMyxut1" />
+  <component name="ProjectId" id="2B2nIqtpFUIp6t5SIUvBmyUH4ns" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "/home/hkh/Desktop/BIHR_Nao2022/src",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.main">
+    <configuration name="main (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="BIHR_Nao2022" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/tutorial_4/scripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tutorial_4/scripts/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="BIHR_Nao2022" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main (1)" />
+        <item itemvalue="Python.main" />
+        <item itemvalue="Python.main (1)" />
+        <item itemvalue="Python.main" />
+        <item itemvalue="Python.main (1)" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="3baa29f6-c9c8-4c64-a436-9117b0719e30" name="Changes" comment="" />
-      <created>1652959225996</created>
+      <changelist id="5161acac-f51a-4039-a6c9-10b8b6535be9" name="Changes" comment="" />
+      <created>1656112970606</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1652959225996</updated>
+      <updated>1656112970606</updated>
+      <workItem from="1656112971827" duration="310000" />
+      <workItem from="1656113288801" duration="444000" />
+      <workItem from="1656113835424" duration="33000" />
+      <workItem from="1656856075627" duration="1506000" />
+      <workItem from="1656863129255" duration="1022000" />
+      <workItem from="1657131367269" duration="3720000" />
+      <workItem from="1657473728440" duration="12307000" />
+      <workItem from="1657555606422" duration="8384000" />
+      <workItem from="1657663892417" duration="24575000" />
     </task>
+    <task id="LOCAL-00001" summary="git_init">
+      <created>1656113276917</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1656113276917</updated>
+    </task>
+    <task id="LOCAL-00002" summary="git_init">
+      <created>1657131553831</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1657131553831</updated>
+    </task>
+    <task id="LOCAL-00003" summary="git_init_v2">
+      <created>1657181972769</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1657181972769</updated>
+    </task>
+    <task id="LOCAL-00004" summary="RL_DT_draft_v1_hkh">
+      <created>1657495353777</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1657495353777</updated>
+    </task>
+    <task id="LOCAL-00005" summary="RL_DT_draft_v1_hkh">
+      <created>1657663968909</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1657663968909</updated>
+    </task>
+    <task id="LOCAL-00006" summary="RL_DT_draft_v1_hkh">
+      <created>1657663974019</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1657663974019</updated>
+    </task>
+    <task id="LOCAL-00007" summary="RL_DT_draft_v1_hkh">
+      <created>1657663975923</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1657663975923</updated>
+    </task>
+    <task id="LOCAL-00008" summary="RL_DT_draft_v1_hkh">
+      <created>1657663987292</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1657663987292</updated>
+    </task>
+    <task id="LOCAL-00009" summary="RL_DT_draft_v1_hkh">
+      <created>1657664007956</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1657664007956</updated>
+    </task>
+    <task id="LOCAL-00010" summary="RL_DT_draft_v1_hkh">
+      <created>1657664104888</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1657664104888</updated>
+    </task>
+    <task id="LOCAL-00011" summary="RL_DT_draft_v2_hkh">
+      <created>1657668442080</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1657668442080</updated>
+    </task>
+    <task id="LOCAL-00012" summary="RL_DT_draft_v2_hkh">
+      <created>1657668922312</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1657668922312</updated>
+    </task>
+    <task id="LOCAL-00013" summary="RL_DT_draft_v2_hkh">
+      <created>1657669012496</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1657669012496</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="Keonhee" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="git_init" />
+    <MESSAGE value="git_init_v2" />
+    <MESSAGE value="RL_DT_draft_v1_hkh" />
+    <MESSAGE value="RL_DT_draft_v2_hkh" />
+    <option name="LAST_COMMIT_MESSAGE" value="RL_DT_draft_v2_hkh" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/BIHR_Nao2022$main.coverage" NAME="main Coverage Results" MODIFIED="1656113010762" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/BIHR_Nao2022$main__1_.coverage" NAME="main (1) Coverage Results" MODIFIED="1656113419758" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/tutorial_4/scripts" />
   </component>
 </project>

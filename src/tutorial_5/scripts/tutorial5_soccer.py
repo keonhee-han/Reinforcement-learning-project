@@ -24,7 +24,7 @@ class tutorial5_soccer:
     def __init__(self, initial_states):
         self.jointPub = 0
         states = range(10)  # number of states (assume discretized leg distance from the hip is 10
-        terminal_state = {0, 9}  ##[hkh] Let assume at the end of leg movement will be end state ## depending on DT Terminal states are differed
+        # terminal_state = {0, 9}  ##[hkh] Let assume at the end of leg movement will be end state ## depending on DT Terminal states are differed
 
         # Initial variables for RL-DT
         self.exp_ = False
@@ -48,7 +48,7 @@ class tutorial5_soccer:
 
     def RL_DT(self, RMax_, s_):   # execute action at given state
         self.S_M.add(s_)        # adding state to set of states visited initially
-
+        model_ = Algorithm_2()
         while True: # end if s <- s'
             # 1. get next action a from policy (?)
             a_ = opt_policy(s_, a_current) #[hkh] its Utility func is determined by reward and transition func that are determined by DT
@@ -56,14 +56,16 @@ class tutorial5_soccer:
             # 2. execute action a -> move_left, move_right or kick
             if a_ == "kick": self.kick() elif a_ == "move_left": self.move_in() elif a_ == "move_right": self.move_out()
             else: print("Nothing is given for optimal policy!")
-            reward_type = self.state_monitor(monitoring_time = 10) # After taking an action, monitoring the state of the robot so that we can reward for that state-action pair.
+            # After taking an action, monitoring the state of the robot so that we can reward for that state-action pair.
+            reward_type = self.state_monitor(monitoring_time = 10)
 
             # 3. Upon taking an action, receives reward
             self.G_t += self.reward[reward_type] - self.reward["move_leg"]  # According to the algorithm, punish with amount -2 as it's moved.
             self.stateSet[s_][a_] += 1  # increase the state-action visits counter
 
             # 4. reaches a new state s' <=> observe new state -> just read in leg angle again
-            s_new = transition_func(s_, a_)
+            # s_new, _, CH_ = model_.update_model(s_, a_)
+
 
             # 5. check if new state has already been visited <=> check if it's in S_M
             if not s_new in self.S_M:   # if not, add it to the stateSet in add_visited_states
@@ -71,10 +73,10 @@ class tutorial5_soccer:
                 ## [hkh] new state action initializaiton is already done in constructor.
 
             # 6. Update model -> many substeps
-            P_M, R_M, CH_ = Algorithm_2.update_model()
+            P_M, R_M, CH_ = model_.update_model()
 
             # 7. Check policy, if exploration/exploitation mode
-            exp_ = self.check_model
+            exp_ = self.check_model(P_M, R_M)
 
             # 8. Compute values -> many substeps
             if CH_:
@@ -115,6 +117,14 @@ class tutorial5_soccer:
     # 9.
     def check_policy(self):
         pass
+
+    def check_model(self, P_M, R_M):  # Check Policy c.f. 1st paper
+        if R_M < 0.4:
+            return True
+        elif R_M > 0.4:
+            return False
+        else:
+            print("check model: R_M error!")
 
     def compute_values(self):
         # Initialize all state's step counts
