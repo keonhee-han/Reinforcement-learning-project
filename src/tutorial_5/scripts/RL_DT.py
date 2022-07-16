@@ -1,72 +1,20 @@
 from sklearn import tree
 import numpy as np
+import copy
 
 
 
 def RobotMotionLookUP(state,action):
-    next_state_LU =state
-    if (state=="0" and action=="2"):
-        next_state_LU = 0
-    if (state=="1" and action=="2"):
-        next_state_LU  = 1
-    if (state=="2" and action=="2"):
-        next_state_LU  = 2
-    if (state=="3" and action=="2"):
-        next_state_LU  = 3
-    if (state=="4" and action=="2"):
-        next_state_LU  = 4
-    if (state=="5" and action=="2"):
-        next_state_LU  = 5
-    if (state=="6" and action=="2"):
-        next_state_LU  = 6
-    if (state=="7" and action=="2"):
-        next_state_LU  = 7
-    if (state=="8" and action=="2"):
-        next_state_LU  = 8
-    if (state=="9" and action=="2"):
-        next_state_LU  = 9
-    if (state=="0" and action=="1"):
-        next_state_LU  = 1
-    if (state=="1" and action=="1"):
-        next_state_LU  = 2
-    if (state=="2" and action=="1"):
-        next_state_LU  = 3
-    if (state=="3" and action=="1"):
-        next_state_LU  = 4
-    if (state=="4" and action=="1"):
-        next_state_LU  = 5
-    if (state=="5" and action=="1"):
-        next_state_LU  = 6
-    if (state=="6" and action=="1"):
-        next_state_LU  = 7
-    if (state=="7" and action=="1"):
-        next_state_LU  = 8
-    if (state=="8" and action=="1"):
-        next_state_LU  = 9
-    if (state=="9" and action=="1"):
-        next_state_LU  = 9
-    if (state=="0" and action=="0"):
-        next_state_LU  = 0
-    if (state=="1" and action=="0"):
-        next_state_LU  = 0
-    if (state=="2" and action=="0"):
-        next_state_LU  = 1
-    if (state=="3" and action=="0"):
-        next_state_LU  = 2
-    if (state=="4" and action=="0"):
-        next_state_LU  = 3
-    if (state=="5" and action=="0"):
-        next_state_LU  = 4
-    if (state=="6" and action=="0"):
-        next_state_LU  = 5
-    if (state=="7" and action=="0"):
-        next_state_LU  = 6
-    if (state=="8" and action=="0"):
-        next_state_LU  = 7
-    if (state=="9" and action=="0"):
-        next_state_LU  = 8
+    shift = 0
+    if(action==0):
+        shift = -1
+    elif(action==1):
+        shift = 1
     
-    return next_state_LU 
+    next_state = state + shift
+    if(next_state < 0 or next_state > 9):
+        return state
+    return next_state
 
 
 
@@ -93,11 +41,11 @@ class RL_DT:
         self.gamma = gamma
         self.MAXSTEPS = MAXSTEPS
         self.action = np.zeros((1,1))
-        self.temp = []
+
 
     def add_experience_trans(self, state, action, state_change):
         tmp = np.append(np.array(action), np.array(state))
-        self.inputTree = np.vstack((self.inputTree, self.tmp))
+        self.inputTree = np.vstack((self.inputTree, tmp))
         self.deltaTransition = np.append(self.deltaTransition, state_change)
         self.transitionTree = self.transitionTree.fit(self.inputTree, self.deltaTransition)
         return True
@@ -131,33 +79,47 @@ class RL_DT:
     def check_model(self):
         self.exp = np.all(self.Rm[:, :] < 0)
 
+    def check_convergence(self, action_values_temp):
+        for i in range(self.Q.shape[0]):
+            for j in range(self.Q.shape[1]):
+                if(abs(self.Q[i][j] - action_values_temp[i][j]) > 0.01):
+                    return True
+        return False
+
     def compute_values(self):
-        K = np.zeros((10,1))
+        # K-function Not used for now
+        """ K = np.zeros((10,1))
         for s in range(0,self.visit_number.shape[0]):
             for a in range(0,3):
                 if self.visit_number[s][a] > 0:
                     K[s]  = 0
                 else:
-                    K[s] = 9999999
+                    K[s] = 9999999 """
         minvisit = np.min(self.visit_number)
-        for s in range(0,self.Q.shape[0]):
-            for a in range(0,self.Q.shape[1]):
-                if self.exp and self.visit_number[s][a] == minvisit:
-                    self.Q[s][a] = self.Rmax
-                elif K[s] > self.MAXSTEPS:
-                    self.Q[s][a] = self.Rmax
-                else:
-                    self.Q[s][a] = self.Rm[s,a]
-
-                s_next = RobotMotionLookUP(s,a)
-                if K[s]+1 < K[s_next]:
-                    K[s_next] = k[s] +1
-                self.Q[s][a] = self.gamma*1*np.max(self.Q[s_next][:])
+        converged = False
+        while not converged:
+            action_values_temp = copy.deepcopy(self.Q)
+            for s in range(0,self.Q.shape[0]):
+                for a in range(0,self.Q.shape[1]):
+                    if(s == 0 and a == 0 or s == 9 and a == 1):
+                        continue
+                    if self.exp and self.visit_number[s][a] == minvisit:
+                        self.Q[s][a] = self.Rmax
+                    # elif K[s] > self.MAXSTEPS:
+                    #     self.Q[s][a] = self.Rmax
+                    else:
+                        self.Q[s][a] = self.Rm[s,a]
+                    s_next = RobotMotionLookUP(s,a)
+                    # if K[s]+1 < K[s_next]:
+                    #     K[s_next] = k[s] +1
+                    self.Q[s][a] += self.gamma*np.max(self.Q[s_next][:])
+            converged = self.check_convergence(action_values_temp)
 
 
     def execute_action(self,action):
         self.next_state = RobotMotionLookUP(self.current_state,action)
         #please update reward function
+        print("next state", self.next_state)
         print("Your current state: ",self.current_state,"Your state action", action)
         reward = input("Please enter reward of state and action")
         return reward
@@ -216,5 +178,3 @@ if __name__=='__main__':
     how_less_greedy_algorithm_for_unknown = 10
     RL_DT = RL_DT(current_location,how_less_greedy_algorithm_for_unknown)
     RL_DT.execute()
-        
-    
