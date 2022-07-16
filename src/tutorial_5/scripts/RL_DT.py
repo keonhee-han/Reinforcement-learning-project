@@ -93,12 +93,13 @@ class RL_DT:
         self.gamma = gamma
         self.MAXSTEPS = MAXSTEPS
         self.action = np.zeros((1,1))
+        self.temp = []
 
     def add_experience_trans(self, state, action, state_change):
         tmp = np.append(np.array(action), np.array(state))
-        self.inputTree = np.vstack((self.inputTree, tmp))
+        self.inputTree = np.vstack((self.inputTree, self.tmp))
         self.deltaTransition = np.append(self.deltaTransition, state_change)
-        #self.transitionTree = self.transitionTree.fit(self.inputTree, self.deltaTransition)
+        self.transitionTree = self.transitionTree.fit(self.inputTree, self.deltaTransition)
         return True
 
     def add_experience_reward(self,  reward):
@@ -157,7 +158,8 @@ class RL_DT:
     def execute_action(self,action):
         self.next_state = RobotMotionLookUP(self.current_state,action)
         #please update reward function
-        reward = np.random.choice([0,1]) 
+        print("Your current state: ",self.current_state,"Your state action", action)
+        reward = input("Please enter reward of state and action")
         return reward
        #reward = ()
        #Please update reward there
@@ -177,33 +179,41 @@ class RL_DT:
                 action=1
             elif loc[2] == True:
                 action=2
-            print(action)
+           
             # 2. Execute a and receive rward and observe next state s'
             reward = self.execute_action(action)
+            #print(reward)
             # 3. incremenet visits(s,a)
+
+            #print("current state:", self.current_state,"current action",action)
+            #print("First number: ",self.visit_number[self.current_state][action])
             self.visit_number[self.current_state][action] = self.visit_number[self.current_state][action] +1 
+            print(self.visit_number)
             # 4. Update model so (self.pm,self.rm and self.ch), as input just action and reward used because
             # other variable defined in class as public, so we have access and there is no need to return because 
             # they are also public
+            #print("after number: ",self.visit_number[self.current_state][action])
+            #print(self.visit_number)
             self.Ch = self.update_model(action,reward)
+
             # 5. model check whether it is exporation mode or not
             # no input again global varialbe
 
-            self.check_model()
             # 6. if CH is true update q table us
+            print(self.Rm)
             if self.Ch:
                 self.compute_values()
             # 7. Update current state
             self.current_state = self.next_state
-            print(self.Q)
+            #print(self.Q)
             #print("running beaches")
 
 
 
 # Usage of code
 if __name__=='__main__':
-    current_location = 0
-    how_less_greedy_algorithm_for_unknown = 5
+    current_location = 5
+    how_less_greedy_algorithm_for_unknown = 10
     RL_DT = RL_DT(current_location,how_less_greedy_algorithm_for_unknown)
     RL_DT.execute()
         
