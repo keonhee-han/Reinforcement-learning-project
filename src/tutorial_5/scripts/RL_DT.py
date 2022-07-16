@@ -1,69 +1,72 @@
 from sklearn import tree
 import numpy as np
 
+
+
 def RobotMotionLookUP(state,action):
-    if (state=="0" and action="2"):
-        next_state = 0
-    if (state=="1" and action="2"):
-        next_state = 1
-    if (state=="2" and action="2"):
-        next_state = 2
-    if (state=="3" and action="2"):
-        next_state = 3
-    if (state=="4" and action="2"):
-        next_state = 4
-    if (state=="5" and action="2"):
-        next_state = 5
-    if (state=="6" and action="2"):
-        next_state = 6
-    if (state=="7" and action="2"):
-        next_state = 7
-    if (state=="8" and action="2"):
-        next_state = 8
-    if (state=="9" and action="2"):
-        next_state = 9
-    if (state=="0" and action="1"):
-        next_state = 1
-    if (state=="1" and action="1"):
-        next_state = 2
-    if (state=="2" and action="1"):
-        next_state = 3
-    if (state=="3" and action="1"):
-        next_state = 4
-    if (state=="4" and action="1"):
-        next_state = 5
-    if (state=="5" and action="1"):
-        next_state = 6
-    if (state=="6" and action="1"):
-        next_state = 7
-    if (state=="7" and action="1"):
-        next_state = 8
-    if (state=="8" and action="1"):
-        next_state = 9
-    if (state=="9" and action="1"):
-        next_state = 9
-    if (state=="0" and action="0"):
-        next_state = 0
-    if (state=="1" and action="0"):
-        next_state = 0
-    if (state=="2" and action="0"):
-        next_state = 1
-    if (state=="3" and action="0"):
-        next_state = 2
-    if (state=="4" and action="0"):
-        next_state = 3
-    if (state=="5" and action="0"):
-        next_state = 4
-    if (state=="6" and action="0"):
-        next_state = 5
-    if (state=="7" and action="0"):
-        next_state = 6
-    if (state=="8" and action="0"):
-        next_state = 7
-    if (state=="9" and action="0"):
-        next_state = 8
+    next_state_LU =state
+    if (state=="0" and action=="2"):
+        next_state_LU = 0
+    if (state=="1" and action=="2"):
+        next_state_LU  = 1
+    if (state=="2" and action=="2"):
+        next_state_LU  = 2
+    if (state=="3" and action=="2"):
+        next_state_LU  = 3
+    if (state=="4" and action=="2"):
+        next_state_LU  = 4
+    if (state=="5" and action=="2"):
+        next_state_LU  = 5
+    if (state=="6" and action=="2"):
+        next_state_LU  = 6
+    if (state=="7" and action=="2"):
+        next_state_LU  = 7
+    if (state=="8" and action=="2"):
+        next_state_LU  = 8
+    if (state=="9" and action=="2"):
+        next_state_LU  = 9
+    if (state=="0" and action=="1"):
+        next_state_LU  = 1
+    if (state=="1" and action=="1"):
+        next_state_LU  = 2
+    if (state=="2" and action=="1"):
+        next_state_LU  = 3
+    if (state=="3" and action=="1"):
+        next_state_LU  = 4
+    if (state=="4" and action=="1"):
+        next_state_LU  = 5
+    if (state=="5" and action=="1"):
+        next_state_LU  = 6
+    if (state=="6" and action=="1"):
+        next_state_LU  = 7
+    if (state=="7" and action=="1"):
+        next_state_LU  = 8
+    if (state=="8" and action=="1"):
+        next_state_LU  = 9
+    if (state=="9" and action=="1"):
+        next_state_LU  = 9
+    if (state=="0" and action=="0"):
+        next_state_LU  = 0
+    if (state=="1" and action=="0"):
+        next_state_LU  = 0
+    if (state=="2" and action=="0"):
+        next_state_LU  = 1
+    if (state=="3" and action=="0"):
+        next_state_LU  = 2
+    if (state=="4" and action=="0"):
+        next_state_LU  = 3
+    if (state=="5" and action=="0"):
+        next_state_LU  = 4
+    if (state=="6" and action=="0"):
+        next_state_LU  = 5
+    if (state=="7" and action=="0"):
+        next_state_LU  = 6
+    if (state=="8" and action=="0"):
+        next_state_LU  = 7
+    if (state=="9" and action=="0"):
+        next_state_LU  = 8
     
-    return next_state
+    return next_state_LU 
 
 
 
@@ -89,6 +92,7 @@ class RL_DT:
         self.deltaReward = 0
         self.gamma = gamma
         self.MAXSTEPS = MAXSTEPS
+        self.action = np.zeros((1,1))
 
     def add_experience_trans(self, state, action, state_change):
         tmp = np.append(np.array(action), np.array(state))
@@ -107,7 +111,7 @@ class RL_DT:
         return prob
         
 
-     def get_predictions(self, state, action):
+    def get_predictions(self, state, action):
         return self.rewardTree.predict([[action, state]])
 
 
@@ -120,26 +124,26 @@ class RL_DT:
                 #self.Pm[state, action] = self.combine_results(state, action)
                 self.Rm[state, action] = self.get_predictions(state, action)
         #print(self.Pm)
-        print(self.Rm)
+        #print(self.Rm)
         return True
 
-    def check_model():
-        self.exp = np.all(self.Rm[int(state), :] < 0)
+    def check_model(self):
+        self.exp = np.all(self.Rm[:, :] < 0)
 
     def compute_values(self):
         K = np.zeros((10,1))
-        for s in range(0,visit_number.shape[0]):
+        for s in range(0,self.visit_number.shape[0]):
             for a in range(0,3):
                 if self.visit_number[s][a] > 0:
-                    K[i]  = 0
+                    K[s]  = 0
                 else:
-                    K[i] = 9999999
+                    K[s] = 9999999
         minvisit = np.min(self.visit_number)
         for s in range(0,self.Q.shape[0]):
             for a in range(0,self.Q.shape[1]):
                 if self.exp and self.visit_number[s][a] == minvisit:
                     self.Q[s][a] = self.Rmax
-                else if K[s] > MAXSTEPS:
+                elif K[s] > self.MAXSTEPS:
                     self.Q[s][a] = self.Rmax
                 else:
                     self.Q[s][a] = self.Rm[s,a]
@@ -150,24 +154,32 @@ class RL_DT:
                 self.Q[s][a] = self.gamma*1*np.max(self.Q[s_next][:])
 
 
-
-    def execute_action(action):
-       self.next_state = RobotMotionLookUP(self.current_state,action)
+    def execute_action(self,action):
+        self.next_state = RobotMotionLookUP(self.current_state,action)
+        #please update reward function
+        reward = np.random.choice([0,1]) 
+        return reward
+       #reward = ()
        #Please update reward there
-       
-
-       return reward
 
 
-    def check_model(self):
-    #Algorithm one loop part(Algorithm-1 RL-DT from line 5 to 19)
+
+
     def execute(self):
-        while : 
+        while True: 
             # 1. Implement code to find argmax of state s
-            arr = Q[self.current_state][:]
-            action = npwhere(arr == np.amax(arr))
+            arr = self.Q[self.current_state][:]
+            loc = arr == np.max(arr)
+            action = np.zeros((1,1))
+            if loc[0] == True:
+                action=0
+            elif loc[1] == True:
+                action=1
+            elif loc[2] == True:
+                action=2
+            print(action)
             # 2. Execute a and receive rward and observe next state s'
-            reward = execute_action(action)
+            reward = self.execute_action(action)
             # 3. incremenet visits(s,a)
             self.visit_number[self.current_state][action] = self.visit_number[self.current_state][action] +1 
             # 4. Update model so (self.pm,self.rm and self.ch), as input just action and reward used because
@@ -182,13 +194,15 @@ class RL_DT:
             if self.Ch:
                 self.compute_values()
             # 7. Update current state
-            self.current_state = self.next_state 
+            self.current_state = self.next_state
+            print(self.Q)
+            #print("running beaches")
 
 
 
 # Usage of code
 if __name__=='__main__':
-    current_location = 5
+    current_location = 0
     how_less_greedy_algorithm_for_unknown = 5
     RL_DT = RL_DT(current_location,how_less_greedy_algorithm_for_unknown)
     RL_DT.execute()
