@@ -1,8 +1,76 @@
 from sklearn import tree
 import numpy as np
 
+def RobotMotionLookUP(state,action):
+    if (state=="0" and action="2"):
+        next_state = 0
+    if (state=="1" and action="2"):
+        next_state = 1
+    if (state=="2" and action="2"):
+        next_state = 2
+    if (state=="3" and action="2"):
+        next_state = 3
+    if (state=="4" and action="2"):
+        next_state = 4
+    if (state=="5" and action="2"):
+        next_state = 5
+    if (state=="6" and action="2"):
+        next_state = 6
+    if (state=="7" and action="2"):
+        next_state = 7
+    if (state=="8" and action="2"):
+        next_state = 8
+    if (state=="9" and action="2"):
+        next_state = 9
+    if (state=="0" and action="1"):
+        next_state = 1
+    if (state=="1" and action="1"):
+        next_state = 2
+    if (state=="2" and action="1"):
+        next_state = 3
+    if (state=="3" and action="1"):
+        next_state = 4
+    if (state=="4" and action="1"):
+        next_state = 5
+    if (state=="5" and action="1"):
+        next_state = 6
+    if (state=="6" and action="1"):
+        next_state = 7
+    if (state=="7" and action="1"):
+        next_state = 8
+    if (state=="8" and action="1"):
+        next_state = 9
+    if (state=="9" and action="1"):
+        next_state = 9
+    if (state=="0" and action="0"):
+        next_state = 0
+    if (state=="1" and action="0"):
+        next_state = 0
+    if (state=="2" and action="0"):
+        next_state = 1
+    if (state=="3" and action="0"):
+        next_state = 2
+    if (state=="4" and action="0"):
+        next_state = 3
+    if (state=="5" and action="0"):
+        next_state = 4
+    if (state=="6" and action="0"):
+        next_state = 5
+    if (state=="7" and action="0"):
+        next_state = 6
+    if (state=="8" and action="0"):
+        next_state = 7
+    if (state=="9" and action="0"):
+        next_state = 8
+    
+    return next_state
+
+
+
+
+
 class RL_DT:
-    def __init__(self,current_state =5,Rmax = 5):
+    def __init__(self,current_state =5,Rmax = 5,gamma = 0.9,MAXSTEPS =100):
         self.A = {'Left': 0, 'Right': 1, 'Kick': 2} #Possible action
         self.sM = np.zeros((10)) # set of all state
         self.visit_number = np.zeros((10,3)) # counting the amount of visited state
@@ -12,19 +80,21 @@ class RL_DT:
         self.Rmax = Rmax # For exploration mode, giving least visited state some reward for making explotation
         self.transitionTree = tree.DecisionTreeClassifier()
         self.rewardTree = tree.DecisionTreeClassifier()
-        self.Pm = np.zeros((10,3))
+        #self.Pm = np.zeros((10,3))
         self.Rm = np.zeros((10,3))
         self.inputTree = np.zeros(2)
-        self.Ch=False
-        self.exp
+        self.Ch = False
+        self.exp = False
         self.deltaTransition = 0
         self.deltaReward = 0
+        self.gamma = gamma
+        self.MAXSTEPS = MAXSTEPS
 
     def add_experience_trans(self, state, action, state_change):
         tmp = np.append(np.array(action), np.array(state))
         self.inputTree = np.vstack((self.inputTree, tmp))
         self.deltaTransition = np.append(self.deltaTransition, state_change)
-        self.transitionTree = self.transitionTree.fit(self.inputTree, self.deltaTransition)
+        #self.transitionTree = self.transitionTree.fit(self.inputTree, self.deltaTransition)
         return True
 
     def add_experience_reward(self,  reward):
@@ -35,9 +105,11 @@ class RL_DT:
     def combine_results(self, state, action):
         prob = np.max(self.transitionTree.predict_proba([[action,state]]))
         return prob
+        
 
      def get_predictions(self, state, action):
         return self.rewardTree.predict([[action, state]])
+
 
     def update_model(self,action,reward):
         rel_state_change = self.current_state - self.next_state # should result in -1, 0 or 1
@@ -45,20 +117,46 @@ class RL_DT:
         self.add_experience_reward(reward)
         for state in range(len(self.sM)):
             for action in range(len(self.A)):
-                self.Pm[state, action] = self.combine_results(state, action)
+                #self.Pm[state, action] = self.combine_results(state, action)
                 self.Rm[state, action] = self.get_predictions(state, action)
-        print(self.Pm)
+        #print(self.Pm)
         print(self.Rm)
         return True
 
     def check_model():
-
-    def execute_action(action):
-
+        self.exp = np.all(self.Rm[int(state), :] < 0)
 
     def compute_values(self):
-        
+        K = np.zeros((10,1))
+        for s in range(0,visit_number.shape[0]):
+            for a in range(0,3):
+                if self.visit_number[s][a] > 0:
+                    K[i]  = 0
+                else:
+                    K[i] = 9999999
+        minvisit = np.min(self.visit_number)
+        for s in range(0,self.Q.shape[0]):
+            for a in range(0,self.Q.shape[1]):
+                if self.exp and self.visit_number[s][a] == minvisit:
+                    self.Q[s][a] = self.Rmax
+                else if K[s] > MAXSTEPS:
+                    self.Q[s][a] = self.Rmax
+                else:
+                    self.Q[s][a] = self.Rm[s,a]
 
+                s_next = RobotMotionLookUP(s,a)
+                if K[s]+1 < K[s_next]:
+                    K[s_next] = k[s] +1
+                self.Q[s][a] = self.gamma*1*np.max(self.Q[s_next][:])
+
+
+
+    def execute_action(action):
+       self.next_state = RobotMotionLookUP(self.current_state,action)
+       #Please update reward there
+       
+
+       return reward
 
 
     def check_model(self):
@@ -69,7 +167,7 @@ class RL_DT:
             arr = Q[self.current_state][:]
             action = npwhere(arr == np.amax(arr))
             # 2. Execute a and receive rward and observe next state s'
-            reward,self.next_state = execute_action(action)
+            reward = execute_action(action)
             # 3. incremenet visits(s,a)
             self.visit_number[self.current_state][action] = self.visit_number[self.current_state][action] +1 
             # 4. Update model so (self.pm,self.rm and self.ch), as input just action and reward used because
