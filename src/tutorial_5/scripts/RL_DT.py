@@ -4,6 +4,7 @@ import numpy as np
 
 
 def RobotMotionLookUP(state,action):
+    # the transition of state, action Q?
     next_state_LU =state
     if (state=="0" and action=="2"):
         next_state_LU = 0
@@ -128,7 +129,7 @@ class RL_DT:
         return True
 
     def check_model(self):
-        self.exp = np.all(self.Rm[:, :] < 0)
+        self.exp = np.all(self.Rm[:, :] < 0) # what does it mean? the exp
 
     def compute_values(self):
         K = np.zeros((10,1))
@@ -141,6 +142,7 @@ class RL_DT:
         minvisit = np.min(self.visit_number)
         for s in range(0,self.Q.shape[0]):
             for a in range(0,self.Q.shape[1]):
+                # check all state-action value in Q?
                 if self.exp and self.visit_number[s][a] == minvisit:
                     self.Q[s][a] = self.Rmax
                 elif K[s] > self.MAXSTEPS:
@@ -151,13 +153,13 @@ class RL_DT:
                 s_next = RobotMotionLookUP(s,a)
                 if K[s]+1 < K[s_next]:
                     K[s_next] = k[s] +1
-                self.Q[s][a] = self.gamma*1*np.max(self.Q[s_next][:])
+                self.Q[s][a] = self.gamma*1*np.max(self.Q[s_next][:]) # value iteration?
 
 
     def execute_action(self,action):
         self.next_state = RobotMotionLookUP(self.current_state,action)
         #please update reward function
-        reward = np.random.choice([0,1]) 
+        reward = np.random.choice([0,1])  # so the reward is random
         return reward
        #reward = ()
        #Please update reward there
