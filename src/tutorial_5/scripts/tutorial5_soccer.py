@@ -96,15 +96,17 @@ class tutorial5_soccer:
         #self.set_joint_angles(0.0, "LAnklePitch")
         # Set hip roll position to zero
         #self.set_joint_angles(0.0,"LHipPitch")
+        
         # Move foot back
         self.set_joint_angles(0.48, "LHipPitch")
         rospy.sleep(1.0)
-
+        # fast kick
         self.set_joint_angles_fast(-0.8, "LHipPitch")
-        # Move the foot back after kick
+        
+        # Move the foot to original position
         rospy.sleep(2.0)
-        self.one_foot_stand()
-        #self.set_joint_angles(0.352, "LHipPitch")
+        #self.one_foot_stand()
+        self.set_joint_angles(-0.3911280632019043, "LHipPitch")
 
     def set_initial_stand(self):
         robotIP = '10.152.246.137'
@@ -134,10 +136,10 @@ class tutorial5_soccer:
 
         # way1 the best position i find
         position = [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.19937801361083984, -1.9574260711669922,
-                    -1.5124820470809937, -0.8882279396057129, 0.32840001583099365, -0.13955211639404297, 0.31297802925109863,
+                    -1.5124820470809937, -0.8882279396057129, 0.32840001583099365, -0.13955211639404297, 0.32,
                     -0.3911280632019043, 1.2, -0.4, -0.12114405632019043, -0.13955211639404297,
                     0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.07980990409851074, -0.3282339572906494,
-                    1.676703929901123, -0.45717406272888184, 1.1964781284332275, 0.18872404098510742, 0.36965203285217285, 0.397599995136261]
+                    1.676703929901123, -0.8, 1.1964781284332275, 0.18872404098510742, 0.36965203285217285, 0.397599995136261]
         '''
         # way 2
         
@@ -162,9 +164,11 @@ class tutorial5_soccer:
         print('move in')
         LHipRoll_angle = self.joint_angles[self.joint_names.index('LHipRoll')]
         print(self.joint_names.index('LHipRoll'), LHipRoll_angle)
-        if LHipRoll_angle > 0.45:
-            increment = -0.03
+        # original pos: 0.31297802925109863
+        if LHipRoll_angle > 0.32:   # 0.45
+            increment = -0.038  # -0.03
             self.set_joint_angles(LHipRoll_angle + increment, "LHipRoll")
+            self.read_state_joint()
         else:
             print('low bound!!!')
 
@@ -172,12 +176,20 @@ class tutorial5_soccer:
         print('move out')
         LHipRoll_angle = self.joint_angles[self.joint_names.index('LHipRoll')]
         #print(self.joint_names.index('LHipRoll'), LHipRoll_angle)
-        if LHipRoll_angle < 0.74:
-            increment = 0.03
+        if LHipRoll_angle < 0.7:   #0.74
+            increment = 0.038
             self.set_joint_angles(LHipRoll_angle + increment, "LHipRoll")
+            self.read_state_joint()
         else:
             print('upper bound')
-
+            
+    def read_state_joint:
+        LHipRoll_angle = self.joint_angles[self.joint_names.index('LHipRoll')]
+        state_joint = int((LHipRoll_angle - 0.32)/(0.7-0.32) * 10)
+        print("state_joint")
+        return state_joint
+       
+        
     def set_initial_pos(self):
         # fix the joints to the initial positions for the standing position
         # I used the set_initial_stand instead - Tianle
