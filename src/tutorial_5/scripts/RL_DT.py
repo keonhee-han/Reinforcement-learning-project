@@ -36,7 +36,6 @@ class RL_DT:
         self.deltaReward = 0
         self.gamma = gamma
         self.MAXSTEPS = MAXSTEPS
-        self.action = np.zeros((1, 1))
 
     def add_experience_trans(self, state, action, state_change):
         tmp = np.append(np.array(action), np.array(state))
@@ -58,14 +57,16 @@ class RL_DT:
         return self.rewardTree.predict([[action, state]])
 
     def update_model(self, action, reward):
-        rel_state_change = self.next_state - self.current_state  # should result in -1, 0 or 1
-        self.Ch = self.add_experience_trans(self.current_state, action, rel_state_change)
-        self.add_experience_reward(reward)
-        for state in range(len(self.sM)):
-            for action in range(len(self.A)):
-                # self.Pm[state, action] = self.combine_results(state, action)
-                prediction = self.get_predictions(state, action)
-                self.Rm[state][action] = prediction
+        # rel_state_change = self.next_state - self.current_state  # should result in -1, 0 or 1
+        # self.Ch = self.add_experience_trans(self.current_state, action, rel_state_change)
+        # self.add_experience_reward(reward)
+        # for state in range(len(self.sM)):
+        #     for action in range(len(self.A)):
+        #         # self.Pm[state, action] = self.combine_results(state, action)
+        #         prediction = self.get_predictions(state, action)
+        #         self.Rm[state][action] = prediction
+
+
         print("Reward Tree: ")
         print(self.Rm)
         # print(self.Pm)
@@ -153,7 +154,11 @@ class RL_DT:
             # they are also public
             # print("after number: ",self.visit_number[self.current_state][action])
             # print(self.visit_number)
-            self.Ch = self.update_model(action, reward)
+
+            #self.Ch = self.update_model(action, reward)
+            self.Rm[self.current_state][action] = reward
+            print(self.Rm)
+            self.Ch = True
 
             # 5. model check whether it is exporation mode or not
             # no input again global varialbe
