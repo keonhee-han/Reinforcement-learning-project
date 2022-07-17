@@ -77,18 +77,11 @@ class RL_DT:
         for i in range(self.Q.shape[0]):
             for j in range(self.Q.shape[1]):
                 if (abs(self.Q[i][j] - action_values_temp[i][j]) > 0.01):
-                    return True
-        return False
+                    return False
+        return True
 
     def compute_values(self):
-        # K-function Not used for now
-        """ K = np.zeros((10,1))
-        for s in range(0,self.visit_number.shape[0]):
-            for a in range(0,3):
-                if self.visit_number[s][a] > 0:
-                    K[s]  = 0
-                else:
-                    K[s] = 9999999 """
+
         minvisit = np.min(self.visit_number)
         converged = False
         while not converged:
@@ -99,13 +92,11 @@ class RL_DT:
                         continue
                     if self.exp and self.visit_number[s][a] == minvisit:
                         self.Q[s][a] = self.Rmax
-                    # elif K[s] > self.MAXSTEPS:
-                    #     self.Q[s][a] = self.Rmax
+
                     else:
                         self.Q[s][a] = self.Rm[s, a]
                     s_next = RobotMotionLookUP(s, a)
-                    # if K[s]+1 < K[s_next]:
-                    #     K[s_next] = k[s] +1
+
                     self.Q[s][a] += self.gamma * np.max(self.Q[s_next][:])
             converged = self.check_convergence(action_values_temp)
 
@@ -114,68 +105,43 @@ class RL_DT:
         # please update reward function
         print("Your current state: " + str(self.current_state))
         print("Next state: " + str(self.next_state))
+
+        # Hardcoded rewards for testing purposes
         reward = -1
-        if(action==2):
-            reward = input("Please enter reward of state and action: ")
+        if(action==2 and (self.current_state == 0 or self.current_state == 3)):
+            reward = 20
         return reward
 
-    # reward = ()
-    # Please update reward there
 
     def execute(self):
-        while True:
-            # 1. Implement code to find argmax of state s
-            # arr = self.Q[self.current_state][:]
-            # loc = arr == np.max(arr)
-            # action = np.zeros((1, 1))
-            # if loc[0] == True:
-            #     action = 0
-            # elif loc[1] == True:
-            #     action = 1
-            # elif loc[2] == True:
-            #     action = 2
+        for i in range(1000):
 
             self.exp = True
             action = np.argmax(self.Q[self.current_state])
             print("Choosing action: " + str(action))
 
-            # 2. Execute a and receive rward and observe next state s'
             reward = self.execute_action(action)
-            # print(reward)
-            # 3. incremenet visits(s,a)
 
-            # print("current state:", self.current_state,"current action",action)
-            # print("First number: ",self.visit_number[self.current_state][action])
             self.visit_number[self.current_state][action] += 1
             print("Current visit-table: ")
             print(self.visit_number)
-            # 4. Update model so (self.pm,self.rm and self.ch), as input just action and reward used because
-            # other variable defined in class as public, so we have access and there is no need to return because 
-            # they are also public
-            # print("after number: ",self.visit_number[self.current_state][action])
-            # print(self.visit_number)
 
-            # self.Ch = self.update_model(action, reward)
+
             self.Rm[self.current_state][action] = reward
             print("Reward Tree: ")
             print(self.Rm)
             self.Ch = True
 
-            # 5. model check whether it is exporation mode or not
-            # no input again global varialbe
-
-            # 6. if CH is true update q table us
             if self.Ch:
                 self.compute_values()
-            # 7. Update current state
+
             print("Q-Table: ")
             print(self.Q)
             self.current_state = self.next_state
-            # print(self.Q)
-            # print("running beaches")
 
 
-# Usage of code
+
+
 if __name__ == '__main__':
     current_location = 5
     RL_DT = RL_DT(current_location)
