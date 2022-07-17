@@ -17,11 +17,13 @@ def RobotMotionLookUP(state, action):
 
 
 class RL_DT:
-    def __init__(self, current_state=5, Rmax=20, gamma=0.9, MAXSTEPS=100):
+    def __init__(self, current_state=5, Rmax=100, gamma=0.9, MAXSTEPS=100):
         self.A = {'Left': 0, 'Right': 1, 'Kick': 2}  # Possible action
         self.sM = np.zeros((10))  # set of all state
         self.visit_number = np.zeros((10, 3))  # counting the amount of visited state
         self.Q = np.zeros((10, 3))  # q table
+        self.Q[0][0] = -10000  # Punish going out of boundaries
+        self.Q[9][1] = -10000
         self.current_state = current_state  # Current state of robot leg
         self.next_state = current_state
         self.Rmax = Rmax  # For exploration mode, giving least visited state some reward for making explotation
@@ -66,11 +68,6 @@ class RL_DT:
         #         prediction = self.get_predictions(state, action)
         #         self.Rm[state][action] = prediction
 
-
-        print("Reward Tree: ")
-        print(self.Rm)
-        # print(self.Pm)
-        # print(self.Rm)
         return True
 
     def check_model(self):
@@ -115,9 +112,11 @@ class RL_DT:
     def execute_action(self, action):
         self.next_state = RobotMotionLookUP(self.current_state, action)
         # please update reward function
-        print("Your current state: "+str(self.current_state))
-        print("Next state: " +str(self.next_state))
-        reward = input("Please enter reward of state and action: ")
+        print("Your current state: " + str(self.current_state))
+        print("Next state: " + str(self.next_state))
+        reward = -1
+        if(action==2):
+            reward = input("Please enter reward of state and action: ")
         return reward
 
     # reward = ()
@@ -136,6 +135,7 @@ class RL_DT:
             # elif loc[2] == True:
             #     action = 2
 
+            self.exp = True
             action = np.argmax(self.Q[self.current_state])
             print("Choosing action: " + str(action))
 
@@ -155,8 +155,9 @@ class RL_DT:
             # print("after number: ",self.visit_number[self.current_state][action])
             # print(self.visit_number)
 
-            #self.Ch = self.update_model(action, reward)
+            # self.Ch = self.update_model(action, reward)
             self.Rm[self.current_state][action] = reward
+            print("Reward Tree: ")
             print(self.Rm)
             self.Ch = True
 
@@ -167,6 +168,8 @@ class RL_DT:
             if self.Ch:
                 self.compute_values()
             # 7. Update current state
+            print("Q-Table: ")
+            print(self.Q)
             self.current_state = self.next_state
             # print(self.Q)
             # print("running beaches")
@@ -175,6 +178,5 @@ class RL_DT:
 # Usage of code
 if __name__ == '__main__':
     current_location = 5
-    how_less_greedy_algorithm_for_unknown = 10
-    RL_DT = RL_DT(current_location, how_less_greedy_algorithm_for_unknown)
+    RL_DT = RL_DT(current_location)
     RL_DT.execute()
