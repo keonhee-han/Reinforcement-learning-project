@@ -13,7 +13,7 @@ import csv
 import random
 from naoqi import ALProxy
 import sys
-
+import RL_DT
 
 class tutorial5_soccer:
     def __init__(self):
@@ -24,6 +24,8 @@ class tutorial5_soccer:
         self.shoulderPitch = 0
         # For setting the stiffnes of single joints
         self.jointPub = 0
+        self.state = 0
+        self.instant_reward = 0
 
     # Callback function for reading in the joint values
     def joints_cb(self, data):
@@ -39,18 +41,6 @@ class tutorial5_soccer:
     # TODO: Aruco marker detection
     def image_cb(self,data):
         bridge_instance = CvBridge()
-
-
-
-    # TODO: put in cmac logic!
-    # input to cmac mapping: self.blobX, self.blobY
-    def move_arm(self):
-        rospy.loginfo("---------------- here starts cmac movement -----------------------")
-        # for testing - random arm values
-
-        self.set_joint_angles(self.shoulderPitch, "RShoulderPitch")
-        self.set_joint_angles(self.shoulderRoll, "RShoulderRoll")
-
 
 
     def set_joint_angles(self, head_angle, topic):
@@ -86,7 +76,16 @@ class tutorial5_soccer:
                 #print(str(joint_angles_to_set))
                 self.jointPub.publish(joint_angles_to_set)
                 rospy.sleep(0.05)
-
+    def make_action(self, action):
+        if action == 0:
+            self.move_in()
+            rospy.sleep(0.1)
+        elif action == 1:
+            self.move_out()
+            rospy.sleep(0.1)
+        else:
+            self.kick()
+            rospy.sleep(0.1)
     # Moves its left hip back and forward and then goes back into its initial position
     def kick(self):
         # i think
@@ -107,6 +106,7 @@ class tutorial5_soccer:
         rospy.sleep(2.0)
         #self.one_foot_stand()
         self.set_joint_angles(-0.3911280632019043, "LHipPitch")
+        self.read_state_joint()
 
     def set_initial_stand(self):
         robotIP = '10.152.246.137'
@@ -136,10 +136,15 @@ class tutorial5_soccer:
 
         # way1 the best position i find
         position = [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.19937801361083984, -1.9574260711669922,
-                    -1.5124820470809937, -0.8882279396057129, 0.32840001583099365, -0.13955211639404297, 0.32,
+                    -1.5124820470809937, -0.8882279396057129, 0.32840001583099365, -0.13955211639404297, 0.48,
                     -0.3911280632019043, 1.2, -0.4, -0.12114405632019043, -0.13955211639404297,
                     0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.07980990409851074, -0.3282339572906494,
                     1.676703929901123, -0.8, 1.1964781284332275, 0.18872404098510742, 0.36965203285217285, 0.397599995136261]
+        joints =['HeadYaw', 'HeadPitch', 'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw',
+                 'LElbowRoll', 'LWristYaw','LHand', 'LHipYawPitch', 'LHipRoll',
+                 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll', 'RHipYawPitch',
+                 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
+                 'RShoulderPitch', 'RShoulderRoll','RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
         '''
         # way 2
         
@@ -151,42 +156,54 @@ class tutorial5_soccer:
         '''
         # backup init position
         # way3 [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.15335798263549805, -1.9129400253295898, -1.5032780170440674, -1.199629783630371, 0.32760000228881836, -0.22852396965026855, 0.4019498825073242, -0.3911280632019043, 1.4679961204528809, -0.8943638801574707, -0.12114405632019043, -0.22852396965026855, 0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.08594608306884766, -0.3052239418029785, 1.6905097961425781, -0.44950389862060547, 1.1995460987091064, 0.1994619369506836, 0.3512439727783203, 0.3952000141143799]
-
-        # way2 not ok [-0.015382051467895508, 0.5120565295219421, 1.8346221446990967, 0.1779019832611084, -1.937483787536621, -1.5124820470809937, -1.0692400932312012, 0.32760000228881836, -0.11807608604431152, 0.31297802925109863, -0.3911280632019043, 1.4664621353149414, -0.8943638801574707, -0.12114405632019043, -0.11807608604431152, 0.3697359561920166, 0.2530679702758789, -0.09232791513204575, -0.07665801048278809, -0.269942045211792, 1.6951122283935547, -0.4617760181427002, 1.1949440240859985, 0.2025299072265625, 0.3589141368865967, 0.39399999380111694]
-        joints =['HeadYaw', 'HeadPitch', 'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw',
-                 'LElbowRoll', 'LWristYaw','LHand', 'LHipYawPitch', 'LHipRoll',
-                 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll', 'RHipYawPitch',
-                 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
-                 'RShoulderPitch', 'RShoulderRoll','RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
         self.set_joint_angles_list(position, joints)
 
     def move_in(self):
         print('move in')
-        LHipRoll_angle = self.joint_angles[self.joint_names.index('LHipRoll')]
-        print(self.joint_names.index('LHipRoll'), LHipRoll_angle)
-        # original pos: 0.31297802925109863
-        if LHipRoll_angle > 0.32:   # 0.45
-            increment = -0.038  # -0.03
-            self.set_joint_angles(LHipRoll_angle + increment, "LHipRoll")
-            self.read_state_joint()
+        self.instant_reward = -1
+        if self.state !=0:
+            self.state = self.state - 1
+            print("dis state:", self.state)
+            self.set_joint_LHipRoll(self.state)
+            """
+            while self.read_state_joint()!=self.state:
+                # if set not accurate, then again
+                print("set again")
+                self.set_joint_LHipRoll(self.state)
+                rospy.sleep(0.1)
+            """
         else:
-            print('low bound!!!')
+            print("lower bound")
 
     def move_out(self):
         print('move out')
-        LHipRoll_angle = self.joint_angles[self.joint_names.index('LHipRoll')]
-        #print(self.joint_names.index('LHipRoll'), LHipRoll_angle)
-        if LHipRoll_angle < 0.7:   #0.74
-            increment = 0.038
-            self.set_joint_angles(LHipRoll_angle + increment, "LHipRoll")
-            self.read_state_joint()
+        self.instant_reward = -1
+        if self.state != 9:
+            self.state = self.state + 1
+            print("dis state:", self.state)
+            self.set_joint_LHipRoll(self.state)
+            """
+            while self.read_state_joint()!=self.state:
+                print("set again")
+                # if set not accurate, then again
+                self.set_joint_LHipRoll(self.state)
+                rospy.sleep(0.1)
+            """
         else:
-            print('upper bound')
-            
-    def read_state_joint:
+            print("upper bound")
+
+    def set_joint_LHipRoll(self, state):
+        joint_angle = 0.48 + state*0.03
+        print('set_angle:', joint_angle)
+        self.set_joint_angles(joint_angle, "LHipRoll")
+        rospy.sleep(0.5)
+        return self.read_state_joint()
+
+
+    def read_state_joint(self):
         LHipRoll_angle = self.joint_angles[self.joint_names.index('LHipRoll')]
-        state_joint = int((LHipRoll_angle - 0.32)/(0.7-0.32) * 10)
-        print("state_joint")
+        state_joint = int((LHipRoll_angle - 0.48)/(0.75-0.48) * 10)
+        print("LHipRoll:", LHipRoll_angle,"state_joint:", state_joint)
         return state_joint
        
         
@@ -260,23 +277,33 @@ class tutorial5_soccer:
         # for RL motions the left hip roll is important: -0.379472 to 0.790477
     '''
 
-    def touch_cb(self, data):
-        if data.button == 1 and data.state == 1:  # TB1
-            print("move in")
-            self.move_in()
-        if data.button == 2 and data.state == 1:
-            print("move out")
-            self.move_out()
-        if data.button == 3 and data.state == 1:
-            print("kick")
-            self.kick()
+    def touch_cb_reward(self, data):
+        if data.button == 1 and data.state == 1:  # miss the goal
+            print("miss")
+            self.instant_reward = -2
+        if data.button == 2 and data.state == 1:  # goal!!!
+            print('goal')
+            self.instant_reward = 20
+        if data.button == 3 and data.state == 1:  # fall down
+            print('fall down')
+            self.instant_reward = -20
+
         # try kick motion
         #if data.button == 3 and data.state == 1:
         # left knee joint pitch: -0.092346 to 2.112528
         # Left hip joint pitch: -1.535889 to 0.484090
         # for RL motions the left hip roll is important: -0.379472 to 0.790477
 
-    def tutorial5_soccer_execute(self):
+    def touch_cb_test(self, data):
+        if data.button == 1 and data.state == 1:  # TB1
+            self.move_in()
+        if data.button == 2 and data.state == 1:
+            self.move_out()
+        if data.button == 3 and data.state == 1:
+            print("kick")
+            self.kick()
+
+    def tutorial5_soccer_execute_test_by_tactile(self):
 
         # cmac training here!!!
         rospy.init_node('tutorial5_soccer_node', anonymous=True)
@@ -286,8 +313,9 @@ class tutorial5_soccer:
         # self.set_initial_stand()
         rospy.sleep(2.0)
         self.one_foot_stand()
+        self.state = 0
         #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
-        rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb)
+        rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_test)
         rospy.Subscriber('joint_states', JointState, self.joints_cb)
         # start with setting the initial positions of head and right arm
 
@@ -296,10 +324,29 @@ class tutorial5_soccer:
 
         rospy.spin()
 
+    def tutorial5_soccer_execute(self):
+        rospy.init_node('tutorial5_soccer_node', anonymous=True)
+        self.set_stiffness(True)
+        self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed, queue_size=10)
+        rospy.sleep(2.0)
+        self.one_foot_stand()
+        self.state = 0 # init state
+        #rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
+        rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_test)
+        rospy.Subscriber('joint_states', JointState, self.joints_cb)
+        # start with setting the initial positions of head and right arm
+        rl_dt = RL_DT.RL_DT(self.state)
+        rl_dt.ros_execute()
+
+        #rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
+
+        rospy.spin()
+
 
 if __name__=='__main__':
     node_instance = tutorial5_soccer()
-    #node_instance.one_foot_stand()
-    node_instance.tutorial5_soccer_execute()
+    # node_instance.one_foot_stand()
+    # node_instance.tutorial5_soccer_execute()
+    node_instance.tutorial5_soccer_execute_test_by_tactile()
     #node_instance.stand()
 

@@ -1,7 +1,7 @@
 from sklearn import tree
 import numpy as np
 import copy
-
+import tutorial5_soccer
 
 def RobotMotionLookUP(state, action):
     shift = 0
@@ -114,11 +114,15 @@ class RL_DT:
 
 
     def execute(self):
+        Soccer = tutorial5_soccer.tutorial5_soccer
+
         for i in range(1000):
 
             self.exp = True
             action = np.argmax(self.Q[self.current_state])
+            print("a:", action)
             print("Choosing action: " + str(action))
+            Soccer.make_action()
 
             reward = self.execute_action(action)
 
@@ -139,6 +143,36 @@ class RL_DT:
             print(self.Q)
             self.current_state = self.next_state
 
+    def ros_execute(self):
+        print("class enter")
+        print("self.current_state")
+        Soccer = tutorial5_soccer.tutorial5_soccer()
+
+        for i in range(1000):
+
+            self.exp = True
+            action = np.argmax(self.Q[self.current_state])
+            print("a:", action)
+            print("Choosing action: " + str(action))
+            Soccer.make_action(action)
+
+            reward = self.execute_action(action)
+
+            self.visit_number[self.current_state][action] += 1
+            print("Current visit-table: ")
+            print(self.visit_number)
+
+            self.Rm[self.current_state][action] = reward
+            print("Reward Tree: ")
+            print(self.Rm)
+            self.Ch = True
+
+            if self.Ch:
+                self.compute_values()
+
+            print("Q-Table: ")
+            print(self.Q)
+            self.current_state = self.next_state
 
 
 
