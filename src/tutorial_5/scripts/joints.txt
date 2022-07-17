@@ -1,0 +1,11 @@
+        position = [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.19937801361083984, -1.9574260711669922,
+                    -1.5124820470809937, -0.8882279396057129, 0.32840001583099365, -0.13955211639404297, 0.31297802925109863,
+                    -0.3911280632019043, 1.2, -0.4, -0.12114405632019043, -0.13955211639404297,
+                    0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.07980990409851074, -0.3282339572906494,
+                    1.676703929901123, -0.45717406272888184, 1.1964781284332275, 0.18872404098510742, 0.36965203285217285, 0.397599995136261]
+
+        joints =['HeadYaw', 'HeadPitch', 'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw',
+                 'LElbowRoll', 'LWristYaw','LHand', 'LHipYawPitch', 'LHipRoll',
+                 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll', 'RHipYawPitch',
+                 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
+                 'RShoulderPitch', 'RShoulderRoll','RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
