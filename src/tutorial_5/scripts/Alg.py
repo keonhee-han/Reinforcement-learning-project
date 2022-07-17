@@ -3,7 +3,7 @@ import numpy as np
 
 
 # Test class for the update algorithm
-class Algorithm_2:
+class update_model:
     def __init__(self, state, action, reward, next_state, S_M, A_):
         self.state = state
         self.action = action
@@ -22,6 +22,9 @@ class Algorithm_2:
         self.inputTree = np.zeros(2)
         self.deltaTransition = 0
         self.deltaReward = 0
+
+        self.P_M = np.asarray(S_M)
+        self.R_M = np.asarray(S_M)
     '''
     input parameters:
     state_: current state discretized value of the distance from hip to the foot
@@ -32,15 +35,12 @@ class Algorithm_2:
     CH_: state, if model hs changed -> currently always true, must be changed
     Reward and Transition probability predictions of shape (10,3)
     '''
-    def update_model(self):
-        # n_ = len(self.S_M)   # size of state_
+    def __call__(self, *args, **kwargs):
         CH_ = False
-        # Update the tree for each state feature
-        # for i in range(n_):
         relative_state_change = self.next_state - self.state  # should result in -1, 0 or 1
         CH_ = self.add_experience_trans(self.state, self.action, relative_state_change)
         # Update the tree for reward
-        CH_ = self.add_experience_reward(reward)    # update each tree incrementally with input vector and desired output
+        CH_ = self.add_experience_reward(self.reward)    # update each tree incrementally with input vector and desired output
         ## Tree updating is done.
         # Combine results for each tree into model
         for s_M in self.S_M:
@@ -71,6 +71,48 @@ class Algorithm_2:
 
     def get_predictions(self, state, action):
         return self.rewardTree.predict([[action, state]])
+
+
+class compute_values:
+    def __init__(self, RMax=20, P_M, R_M, S_M, A_, exp_, Gamma = 0.9, MAX_STEP = 10, Q_table):
+        self.RMax = RMax
+        self.P_M = P_M
+        self.R_M = R_M
+        self.visit_table = S_M  # stateSet
+        self.A_ = A_
+        self.exp_ = exp_
+        self.gamma = Gamma
+        self.K_ = np.asarray(S_M[:,0])
+        self.min_visits = 0
+        self.converged = False
+        self.Q_table = Q_table
+        self.MAX_STEP = MAX_STEP
+        self.min_visits = 0
+
+    def __call__(self, *args, **kwargs):
+        # Initialize all state's step counts
+        # self.steps_nearest_visited_state = {x: sys.maxint for x in range(9)}
+        # visits_values = []
+        # for state in range(len(self.visit_table)):
+        #     for action in range(3):
+                # if self.visit_table(state, action) > 0:
+                #     self.K_(state) = 0
+                # else:
+                #     self.K_(state) = None
+        self.min_visits = np.min(self.visit_table)
+        while not self.converged:
+            for state in range(len(self.visit_table)):
+                for action in range(3):
+                    if self.exp_ and self.visit_table[state, action] == self.min_visits:
+                        # unknown states are given exploration bonus
+                        self.Q_table[state, action] = self.RMax
+                    # elif self.K_(state) > self.MAX_STEP:
+                        # states out of reach
+                        # self.Q_table = self.RMax
+                    else:
+                        # update remaining state's action-values
+                        self.Q_table = self.R_M[state, action]
+                    self.Q_table[state, action] += self.gamma * 1 * np.max(state_next, action_next)
 
 
 if __name__ == '__main__':

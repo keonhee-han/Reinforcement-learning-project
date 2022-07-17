@@ -15,7 +15,7 @@ import random
 from naoqi import ALProxy
 import sys
 # from MDP import *
-from update_model import *
+from Alg import *
 
 LEG_MAX = 0.790477
 LEG_MIN = -0.379472
@@ -24,22 +24,23 @@ class tutorial5_soccer:
     def __init__(self, initial_states):
         self.jointPub = 0
         states = range(10)  # number of states (assume discretized leg distance from the hip is 10
-        # terminal_state = {0, 9}  ##[hkh] Let assume at the end of leg movement will be end state ## depending on DT Terminal states are differed
-
-        gamma = 0.9 # discount_factor
+        self.train_epsiodes = 100   # random guess
+        self.gamma = 0.9 # discount_factor
         # Initial variables for RL-DT
         self.exp_ = False
         # self.S_M = set()   # set type to store and check visited state per episode
         self.initial_state = initial_states
         ##[hkh] initialize each visit for each state zero for each state
-        self.actions = {"move_right": 0, "move_left": 0, "kick": 0}
-        # self.actions = ["move_right", "move_left", "kick"]
-        self.train_epsiodes = 100   # random guess
+        self.actions = {"move_right": 0, "move_left": 1, "kick": 2}
         self.reward = {"move_leg": -1, "fall": -20, "fail_goal": -2, "goal": 20 }
-        self.G_t = 0 # total future reward up to given time t (for one episode)
-        ## Q-table & visiting table
-        self.Q_table = np.array((len(state_Set)))
-        self.stateSet = {s: self.actions for s in states}  # =visits: state-action pair is initially zero, no states visited so far
+        # self.G_t = 0 # total future reward up to given time t (for one episode)
+        # self.stateSet = {s: self.actions for s in states}  # =visits: state-action pair is initially zero, no states visited so far
+        self.Q_table = np.zeros((len(states), len(self.actions)))   # reward table
+        # self.Q_table = np.array([ [-20, -1, -1], [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1]
+        #                           , [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1]
+        #                           , [-1, -1, -1] , [-1, -1, -20] ])
+        self.visit_table = np.zeros((len(states), len(self.actions)))
+        self.stateSet = np.array(range(states))
 
         self.leg_state_abs = 0 #-0.379472 to 0.790477 -> discretized by 10 ~ 0.117 per bin
         self.leg_state_dis = 10   # 0 - 9, 10 for invalid
@@ -51,51 +52,56 @@ class tutorial5_soccer:
 
     def RL_DT(self, RMax_, s_):   # execute action at given state (as discretized state indices)
         # self.S_M.add(s_)        # adding state to set of states visited initially
-        model_ = Algorithm_2()
+        s_next = 0
         while True: # end if s <- s'
             # 1. get next action a from policy (?)
-            a_ = self.opt_policy(s_, a_current) #[hkh] its Utility func is determined by reward and transition func that are determined by DT
-
+            a_ = self.opt_policy(s_) #[hkh] its Utility func is determined by reward and transition func that are determined by DT
             # 2. execute action a -> move_left, move_right or kick
-            if a_ == "kick": self.kick() elif a_ == "move_left": self.move_in() elif a_ == "move_right": self.move_out()
+            if a_ == 2: self.kick() elif a_ == 1: self.move_in() elif a_ == 0: self.move_out()
             else: print("Nothing is given for optimal policy!")
             # After taking an action, monitoring the state of the robot so that we can reward for that state-action pair.
-            reward_type = self.state_monitor(monitoring_time = 10)
+            reward_type = self.state_monitor(input_wait)  # check what happened to robot after taken the action
 
-            # 3. Upon taking an action, receives reward
-            self.G_t += self.reward[reward_type] - self.reward["move_leg"]  # According to the algorithm, punish with amount -2 as it's moved.
-            self.Q_table[s_] +=
-            self.stateSet[s_][a_] += 1  # increase the state-action visits counter
+            # 3. Upon taking an action, receives reward, observe next state
+            R_ += self.reward[reward_type] - self.reward["move_leg"]  # current reward: According to the algorithm, punish with amount -2 as it's moved.
+            # self.Q_table[s_, a_] += R_ + self.gamma * self.Q_table[s_, a_]
+            self.visit_table[s_, a_] += 1  # increase the state-action visits counter
+            if a_ == "move_left": s_next = s_ - 1
+            elif a_ == "move_right": s_next = s_ + 1
 
             # 4. reaches a new state s' <=> observe new state -> just read in leg angle again
             # s_new, _, CH_ = model_.update_model(s_, a_)
-
-
             # 5. check if new state has already been visited <=> check if it's in S_M
-            if not s_new in self.S_M:   # if not, add it to the stateSet in add_visited_states
-                self.S_M.add(s_new)
+            # if not s_new in self.S_M:   # if not, add it to the stateSet in add_visited_states
+            #     self.S_M.add(s_new)
                 ## [hkh] new state action initializaiton is already done in constructor.
 
             # 6. Update model -> many substeps
-            P_M, R_M, CH_ = model_.update_model()
+            Alg2 = update_model(state=s_, action=a_, reward=R_, next_state=s_next, S_M=self.visit_table, A_=self.actions)
+            P_M, R_M, CH_ = Alg2()
 
             # 7. Check policy, if exploration/exploitation mode
             exp_ = self.check_model(P_M, R_M)
 
             # 8. Compute values -> many substeps
             if CH_:
-                self.compute_values(RMax_, P_M, R_M, self.S_M, exp_)
+                Alg3 = compute_values(RMax_, P_M, R_M, self.visit_table, exp_)
+                Alg3()
 
-            # If kick happened, end a sequence as one episode
+            # If kick happened, end an action sequence as one episode
             if a_ == "kick": break
+            state = s_next
+            return state
 
-    def opt_policy(self, state, action):
-
+    def opt_policy(self, state):
+        action_next = np.argmax(self.Q_table[state, :])
+        return action_next
 
     def discretize_leg(self):
         self.leg_state_dis = np.round((self.leg_state_abs - LEG_MIN) / (LEG_MAX - LEG_MIN) * 9)
 
-    def state_monitor(self, monitoring_time = 10):
+    def state_monitor(self): # This is where the keyboard should input to give reward during certain time.
+        print("- input the keyboard")
         return reward_type
 
     def opt_policy(self, state, next_action):   # optimal policy functio that chooses the action maximizing the reward
@@ -119,14 +125,6 @@ class tutorial5_soccer:
                 return
         self.stateSet.append(self.leg_state_dis)
 
-    # 7. 
-    def increase_visits(self):
-        pass
-    
-    # 9.
-    def check_policy(self):
-        pass
-
     def check_model(self, P_M, R_M):  # Check Policy c.f. 1st paper
         if R_M < 0.4:
             return True
@@ -135,43 +133,6 @@ class tutorial5_soccer:
         else:
             print("check model: R_M error!")
 
-    def compute_values(self):
-        # Initialize all state's step counts
-        self.steps_nearest_visited_state = {x: sys.maxint for x in range(9)}
-        visits_values = []
-        for state in self.stateSet:
-            visits_value = self.get_visits_state(state)
-            visits_values.append(visits_value)
-            if visits_value > 0:
-                self.steps_nearest_visited_state[state] = 0
-        min_visits = min(visits_values)
-
-        # Perform value iteration on the model
-        action_values_temp = {}
-        converged = False
-        while not converged:
-            for state in self.stateSet:
-                for action in self.actions:
-                    if self.exploration and visits_value(state) == min_visits:
-                        # Unknown states are given exploration bonus
-                        action_values_temp[(state, action)] = RMax
-                    elif self.steps_nearest_visited_state[state] > MAX_STEPS:
-                        action_values_temp[(state, action)] = RMax
-                    else:
-                        # Update remaining state's action values
-                        action_values_temp[(state, action)] = self.get_reward_state_action_pair(state, action)
-                        for next_state in self.get_next_states(state):
-                            if next_state not in self.stateSet:
-                                self.stateSet.append(next_state)
-                                for next_action in self.actions:
-                                    self.visits[(next_state, next_action)] = 0
-                            # Update action-values using Bellman Equation
-                            action_values_temp[(state, action)] += \
-                                DISCOUNT_FACTOR * \
-                                self.get_prop_next_state_given_state_action(next_state, state, action) * \
-                                self.get_next_state_action_value_greedy(next_state)
-            converged = self.check_convergence(action_values_temp)
-            self.action_values = action_values_temp
 
 
 
