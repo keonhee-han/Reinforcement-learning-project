@@ -111,7 +111,7 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
 
 
     def check_model(self, P_M, R_M):  # Check Policy c.f. 1st paper
-        if R_M < 0.4:
+        if np.sum(R_M) < 0.4:
             return True
         elif R_M > 0.4:
             return False
@@ -224,6 +224,7 @@ class compute_values:
                     else:
                         # update remaining state's action-values
                         self.Q_table = self.R_M[state, action]
+                        state_next = self.P_M[state, action]
                     self.Q_table[state, action] += self.gamma * 1 * np.max(state_next, action_next)
 
 
