@@ -4,6 +4,7 @@ import numpy as np
 class RL_DT_test:  # execute action at given state (as discretized state indices)
     def __init__(self, RMax_, s_):
         states = range(10)  # number of states (assume discretized leg distance from the hip is 10
+        self.s_ = s_
         self.train_epsiodes = 100   # random guess
         self.gamma = 0.9 # discount_factor
         self.exp_ = False
@@ -31,7 +32,7 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
     def train(self):
         s_next = 0
         for _ in range(self.train_epsiodes):  # end if s <- s'
-            a_ = self.opt_policy(s_)  # [hkh] its Utility func is determined by reward and transition func that are determined by DT
+            a_ = self.opt_policy(self.s_)  # [hkh] its Utility func is determined by reward and transition func that are determined by DT
             if a_ == 2: self.kick()
             elif a_ == 1: self.move_in()
             elif a_ == 0: self.move_out()
@@ -66,7 +67,7 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
             state = s_next
             return state
 
-    def opt_policy(self, state):
+    def opt_policy(self, state): # optimal policy functio that chooses the action maximizing the reward
         action_next = np.argmax(self.Q_table[state, :])
         return action_next
 
@@ -82,9 +83,6 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
         elif value==4:reward_type="goal"
         print(f'You entered {reward_type}')
         return reward_type
-
-
-    def opt_policy(self, state, next_action):  # optimal policy functio that chooses the action maximizing the reward
 
 
     def transition_func(self, state, action):
