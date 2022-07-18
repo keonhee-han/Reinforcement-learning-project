@@ -162,6 +162,7 @@ class update_model:
         print(self.R_M)
         return True, self.P_M, self.R_M, CH_
 
+
     # Update the tranisition tree based on the relative change of the state
     def add_experience_trans(self, state, action, relative_state_change):
         tmp = np.append(np.array(action), np.array(state))  # input vector
