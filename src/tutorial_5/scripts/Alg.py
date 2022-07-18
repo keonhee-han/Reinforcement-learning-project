@@ -29,7 +29,7 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
         # e.g. In A=L node, if True for x=0 meaning no movement, then its output is either 0:no movement as true, -1:moved left
         # In A=R, if x=1: moved right as true, x=0: idle. its output 0 as True or Y=1 as False.
 
-    def train(self):
+    def run(self):
         s_next = 0
         for _ in range(self.train_epsiodes):  # end if s <- s'
             a_ = self.opt_policy(self.s_)  # [hkh] its Utility func is determined by reward and transition func that are determined by DT
@@ -83,10 +83,6 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
         elif value==4:reward_type="goal"
         print(f'You entered {reward_type}')
         return reward_type
-
-
-    def transition_func(self, state, action):
-        return new_state
 
 
     # 1.
@@ -222,8 +218,19 @@ class compute_values:
                     else:
                         # update remaining state's action-values
                         self.Q_table = self.R_M[state, action]
-                        state_next = self.P_M[state, action]
+                        state_next = self.State_Transition[state, action]
                     self.Q_table[state, action] += self.gamma * 1 * np.max(state_next, action_next)
+
+    def State_Transition(self, state, action):
+        shift = 0
+        if action == 0:
+            shift = -1
+        elif action == 1:
+            shift = 1
+        next_state = state + shift
+        if next_state < 0 or next_state > 9:
+            return state
+        return next_state
 
 
 if __name__ == '__main__':
