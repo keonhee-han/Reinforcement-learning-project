@@ -1,24 +1,135 @@
 from sklearn import tree
 import numpy as np
 
+class RL_DT_test:  # execute action at given state (as discretized state indices)
+    def __init__(self, RMax_, s_):
+        states = range(10)  # number of states (assume discretized leg distance from the hip is 10
+        self.train_epsiodes = 100   # random guess
+        self.gamma = 0.9 # discount_factor
+        self.exp_ = False
+        self.initial_state = initial_states
+        ##[hkh] initialize each visit for each state zero for each state
+        self.actions = {"move_right": 0, "move_left": 1, "kick": 2}
+        self.reward = {"move_leg": -1, "fall": -20, "fail_goal": -2, "goal": 20 }
+        # self.G_t = 0 # total future reward up to given time t (for one episode)
+        # self.stateSet = {s: self.actions for s in states}  # =visits: state-action pair is initially zero, no states visited so far
+        self.Q_table = np.zeros((len(states), len(self.actions)))   # reward table
+        # self.Q_table = np.array([ [-20, -1, -1], [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1]
+        #                           , [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1]
+        #                           , [-1, -1, -1] , [-1, -1, -20] ])
+        self.visit_table = np.zeros((len(states), len(self.actions)))
+        self.stateSet = np.array(range(states))
+
+        self.leg_state_abs = 0 #-0.379472 to 0.790477 -> discretized by 10 ~ 0.117 per bin
+        self.leg_state_dis = 10   # 0 - 9, 10 for invalid
+
+        ##[hkh] we have to implement DT for transition probability. DT
+        # (reminder: in DT example, the state should be vaild within the possible range.
+        # e.g. In A=L node, if True for x=0 meaning no movement, then its output is either 0:no movement as true, -1:moved left
+        # In A=R, if x=1: moved right as true, x=0: idle. its output 0 as True or Y=1 as False.
+
+    def train(self):
+        s_next = 0
+        for _ in range(self.train_epsiodes):  # end if s <- s'
+            a_ = self.opt_policy(s_)  # [hkh] its Utility func is determined by reward and transition func that are determined by DT
+            if a_ == 2: self.kick()
+            elif a_ == 1: self.move_in()
+            elif a_ == 0: self.move_out()
+            else: print("Nothing is given for optimal policy!") # 2. execute action a -> move_left, move_right or kick
+            # After taking an action, monitoring the state of the robot so that we can reward for that state-action pair.
+            reward_type = self.state_monitor(input_wait)  # check what happened to robot after taken the action and give'em reward
+            # 3. Upon taking an action, receives reward, observe next state
+            R_ += self.reward[reward_type] - self.reward["move_leg"]  # current reward: According to the algorithm, punish with amount -2 as it's moved.
+            # self.Q_table[s_, a_] += R_ + self.gamma * self.Q_table[s_, a_]
+            self.visit_table[s_, a_] += 1  # increase the state-action visits counter
+            if a_ == "move_left":
+                s_next = s_ - 1
+            elif a_ == "move_right":
+                s_next = s_ + 1
+            # 4. reaches a new state s' <=> observe new state -> just read in leg angle again
+            # s_new, _, CH_ = model_.update_model(s_, a_)
+            # 5. check if new state has already been visited <=> check if it's in S_M
+            # if not s_new in self.S_M:   # if not, add it to the stateSet in add_visited_states
+            #     self.S_M.add(s_new)
+            ## [hkh] new state action initializaiton is already done in constructor.
+            # 6. Update model -> many substeps
+            Alg2 = update_model(state=s_, action=a_, reward=R_, next_state=s_next, S_M=self.visit_table,A_=self.actions)
+            P_M, R_M, CH_ = Alg2()
+            # 7. Check policy, if exploration/exploitation mode
+            exp_ = self.check_model(P_M, R_M)
+            # 8. Compute values -> many substeps
+            if CH_:
+                Alg3 = compute_values(RMax_, P_M, R_M, self.visit_table, exp_)
+                Alg3()
+            # If kick happened, end an action sequence as one episode
+            if a_ == "kick": break
+            state = s_next
+            return state
+
+    def opt_policy(self, state):
+        action_next = np.argmax(self.Q_table[state, :])
+        return action_next
+
+    def discretize_leg(self):
+        self.leg_state_dis = np.round((self.leg_state_abs - LEG_MIN) / (LEG_MAX - LEG_MIN) * 9)
+
+    def state_monitor(self):  # This is where the keyboard should input to give reward during certain time.
+        print("move_leg:1, fall:2, fail_goal:3, goal: 4")
+        value = input("Please input the reward type:\n")
+        if value==1:reward_type="move_leg"
+        elif value==2:reward_type="fall"
+        elif value==3:reward_type="fail_goal"
+        elif value==4:reward_type="goal"
+        print(f'You entered {reward_type}')
+        return reward_type
+
+
+    def opt_policy(self, state, next_action):  # optimal policy functio that chooses the action maximizing the reward
+
+
+    def transition_func(self, state, action):
+        return new_state
+
+
+    # 1.
+    def get_action_policy(self):
+        pass
+
+
+    # 3.
+    def get_reward(self):  # Reward function: R(s,a)
+
+    # maybe with keyboard instead of tactile buttons -> 4 types of reward
+
+
+    # 6.
+    def add_visited_states(self):
+        for state in self.stateSet:
+            if state == self.leg_state_dis:
+                return
+        self.stateSet.append(self.leg_state_dis)
+
+
+    def check_model(self, P_M, R_M):  # Check Policy c.f. 1st paper
+        if R_M < 0.4:
+            return True
+        elif R_M > 0.4:
+            return False
+        else:
+            print("check model: R_M error!")
+
 
 # Test class for the update algorithm
 class update_model:
     def __init__(self, state, action, reward, next_state, S_M, A_):
         self.state = state
         self.action = action
-        # self.stateSet = np.zeros(10)  # states already visited/known
         self.next_state = next_state
         self.S_M = S_M  # stateSet
-        # self.reward = {'Goal': 20, 'Move_Leg': -1, 'Fail': -2, 'Fall': -20}  # just exampe values
         self.reward = reward
-        # self.possibleStates = [0,1,2,3,4,5,6,7,8,9]
-        # self.possibleActions = {'Left': 0, 'Right': 1, 'Kick': 2}
         self.A_ = A_
         self.transitionTree = tree.DecisionTreeClassifier()
         self.rewardTree = tree.DecisionTreeClassifier()
-        # self.Pm = np.zeros((10, 3))
-        # self.Rm = np.zeros((10, 3))
         self.inputTree = np.zeros(2)
         self.deltaTransition = 0
         self.deltaReward = 0
