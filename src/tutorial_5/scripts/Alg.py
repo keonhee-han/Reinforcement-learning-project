@@ -16,9 +16,6 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
         # self.G_t = 0 # total future reward up to given time t (for one episode)
         # self.stateSet = {s: self.actions for s in states}  # =visits: state-action pair is initially zero, no states visited so far
         self.Q_table = np.zeros((len(states), len(self.actions)))   # reward table
-        # self.Q_table = np.array([ [-20, -1, -1], [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1]
-        #                           , [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1] , [-1, -1, -1]
-        #                           , [-1, -1, -1] , [-1, -1, -20] ])
         self.visit_table = np.zeros((len(states), len(self.actions)))
         self.stateSet = np.array(range(states))
 
@@ -90,7 +87,7 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
                 P_M, R_M, CH_ = self.update_model(state=s_,action=a_,reward=R_,next_state=s_next,S_M=self.visit_table,A_=self.actions)
                 # 7. Check policy, if exploration/exploitation mode
                 # exp_ = self.check_model(P_M, R_M)
-                exp_ = self.check_model(P_M, R_M)
+                exp_ = True
                 # 8. Compute values -> many substeps
                 if CH_:
                     self.compute_values(RMax, P_M, R_M, self.visit_table, exp_)
@@ -221,13 +218,8 @@ class RL_DT_test:  # execute action at given state (as discretized state indices
                         state_next = self.State_Transition[state, action]
                     self.Q_table[state, action] += self.gamma * 1 * np.max(self.Q_table(state_next,:))
 
-
+    def Q_table_init():
+        self.Q_table[0][1] = -100   # punish the out of boundary: left
+        self.Q_table[-1][0] = -100   # punish the out of boundary: right
 
 if __name__ == '__main__':
-    # test with arbitrary values
-    # state = np.zeros(1)
-    # action = 1
-    # reward = -1
-    # state_ = np.array([1])
-    # test = Algorithm_2()
-    # test.update_model(state, action, reward, state_)
