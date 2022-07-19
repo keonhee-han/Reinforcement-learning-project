@@ -28,6 +28,7 @@ class tutorial5_soccer:
         self.shoulderPitch = 0
         # For setting the stiffnes of single joints
         self.jointPub = 0
+        self.kick_reward = 0
 
         self.init_state = init_joint
         self.init_goal_keeper = init_goal_keeper
@@ -341,18 +342,21 @@ class tutorial5_soccer:
         if data.button == 1 and data.state == 1:  # miss the goal
             print("miss")
             self.instant_reward = -2
+            self.kick_reward = -2
             return self.instant_reward
         if data.button == 2 and data.state == 1:  # goal!!!
             print('goal')
             self.instant_reward = 20
+            self.kick_reward = 20
             return self.instant_reward
         if data.button == 3 and data.state == 1:  # fall down
             print('fall down')
             self.instant_reward = -20
+            self.kick_reward = -20
             return self.instant_reward
         else:
             #self.instant_reward = 0
-
+            self.kick_reward = 0
             return False
         # how to build the waiting signal
 
@@ -387,22 +391,7 @@ class tutorial5_soccer:
 
         rospy.spin()
 
-    def tutorial5_soccer_test(self):
-        rospy.init_node('tutorial5_soccer_node', anonymous=True)
-        self.set_stiffness(True)
-        self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed, queue_size=10)
-        rospy.sleep(2.0)
-        self.one_foot_stand()
-        self.state = 0  # init state
-        # rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
-        rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_test)
-        rospy.Subscriber('joint_states', JointState, self.joints_cb)
-        # start with setting the initial positions of head and right arm
 
-
-        # rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
-
-        rospy.spin()
 
     def State_Transition(self, state, action):
         shift = 0
@@ -456,8 +445,9 @@ class tutorial5_soccer:
     def check_convergence(self, action_values_temp):
         for i in range(self.Q.shape[0]):
             for j in range(self.Q.shape[1]):
-                if (abs(self.Q[i][j] - action_values_temp[i][j]) > 0.01):
-                    return False
+                for q in range(self.Q.shape[2]):
+                    if (abs(self.Q[i][j][q] - action_values_temp[i][j][q]) > 0.01):
+                        return False
         return True
 
     def Compute_Value(self, current_state, stepsize):
@@ -504,18 +494,36 @@ class tutorial5_soccer:
         print(HeadTouch.button)
         # rospy.spin()
 
-    def tutorial5_soccer_train(self):
+    def tutorial5_soccer_joint_test(self):
         rospy.init_node('tutorial5_soccer_node', anonymous=True)
-        # self.set_stiffness(True)
+        self.set_stiffness(True)
         self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed, queue_size=10)
         rospy.sleep(2.0)
-        # self.one_foot_stand()
+        self.one_foot_stand()
+        self.state = 0  # init state
+        # rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
+        rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_test)
+        rospy.Subscriber('joint_states', JointState, self.joints_cb)
+        # start with setting the initial positions of head and right arm
+
+
+        # rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
+
+        rospy.spin()
+
+    def tutorial5_soccer_train(self):
+        rospy.init_node('tutorial5_soccer_node', anonymous=True)
+        self.set_stiffness(True)
+        self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed, queue_size=10)
+        rospy.sleep(2.0)
+        self.one_foot_stand()
         # rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_reward) # will give the data?
         rospy.Subscriber('joint_states', JointState, self.joints_cb)
 
         # self.state = 0  # init state
         s = [self.init_goal_keeper, self.init_state]
+        s[0] = input("Please input the location of goal_keeper(0->left, 1->middle, 2->right):")
         self.sM.append(s)
         converged = False
         step = 0
@@ -526,28 +534,34 @@ class tutorial5_soccer:
             # self.
             Goal_keeper.append(s[0])
             step = 0
-            # while not converged or np.min(self.visit[s[0]]) < 1:
+            while not converged or np.min(self.visit[s[0]]) < 1:
             # while np.min(self.visit[s[0]]) < 2:
-            while step < self.maxstep:
+            # while step < self.maxstep:
                 # print("visit_con:",self.visit[:])
                 print("np_min:", np.min(self.visit[s[0]]))
                 # break
             #while step<100:
                 step = step + 1
                 # print(converged)
-                # Q_temp = copy.deepcopy(self.Q[:][goal_keeper][:])
+                Q_temp = copy.deepcopy(self.Q)
                 action = self.q_max(s)  # greedy action
-                # self.make_action(action)
+                self.make_action(action)
                 print("maxaction:", action)
                 self.visit[s[0]][s[1]][action] += 1   # s[0] goal keeper, s[1] joint
                 s_prime = self.State_Transition(s, action)
                 print("s_prime:", s_prime)
                 # r = rl_dt.reward_true[s][action]
+                print("instant_kick:", self.kick_reward)
                 if action == 0 or action == 1:
                     r = -1
                 else:
+                    print("wait for reward")
                     # wait reward signal after kick
                     # r = input("reward:")  # hold on
+                    # self.touch_cb_reward
+
+
+
 
                     if s[1] == 0 or s[1] == 9 :
                         r = -20
@@ -559,6 +573,7 @@ class tutorial5_soccer:
                         r = 20
                     else:
                         r = -2
+
                     """
                     flag = False
                     while not flag:
@@ -581,9 +596,73 @@ class tutorial5_soccer:
                     # self.Compute_Value(300)
                     self.Compute_Value(s, 300)
                 s = s_prime
-                # converged = self.check_convergence(Q_temp)
+                converged = self.check_convergence(Q_temp)
             print(self.Q)
             print(self.Rm)
+
+    def tutorial5_soccer_test(self):
+        rospy.init_node('tutorial5_soccer_node', anonymous=True)
+        # self.set_stiffness(True)
+        self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed, queue_size=10)
+        rospy.sleep(2.0)
+        # self.one_foot_stand()
+        # rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
+        rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_reward)  # will give the data?
+        rospy.Subscriber('joint_states', JointState, self.joints_cb)
+        """
+        self.Q = [[[  9.10098361,  12.62622951,  -9.89901639]
+                  [  9.10098361,  17.03278689,  11.62622951]
+                  [ 12.62622951,  22.54098361,  16.03278689]
+                  [ 17.03278689,  29.42622951,  21.54098361]
+                  [ 22.54098361,  22.54098361,  38.03278689]
+                  [ 29.42622951,  17.03278689,  21.54098361]
+                  [ 22.54098361,  12.62622951,  16.03278689]
+                  [ 17.03278689,   9.10098361,  11.62622951]
+                  [ 12.62622951,   6.28078689,   8.10098361]
+                  [  9.10098361,   6.28078689, -12.71921311]]
+
+                 [[  4.02462951,   6.28078689, -14.97537049]
+                  [  4.02462951,   9.10098361,   5.28078689]
+                  [  6.28078689,  12.62622951,   8.10098361]
+                  [  9.10098361,  17.03278689,  11.62622951]
+                  [ 12.62622951 , 22.54098361,  16.03278689]
+                  [ 17.03278689,  29.42622951,  21.54098361]
+                  [ 22.54098361,  22.54098361,  38.03278689]
+                  [ 29.42622951,  17.03278689,  21.54098361]
+                  [ 22.54098361,  12.62622951,  16.03278689]
+                  [ 17.03278689,  12.62622951,  -6.37377049]]
+
+                 [[  0.77576289,   2.21970361, -18.22423711]
+                  [  0.77576289,   4.02462951,   1.21970361]
+                  [  2.21970361,   6.28078689,   3.02462951]
+                  [  4.02462951,   9.10098361,   5.28078689]
+                  [  6.28078689,  12.62622951,   8.10098361]
+                  [  9.10098361,  17.03278689,  11.62622951]
+                  [ 12.62622951,  22.54098361,  16.03278689]
+                  [ 17.03278689,  29.42622951,  21.54098361]
+                  [ 22.54098361,  22.54098361,  38.03278689]
+                  [ 29.42622951,  22.54098361,   3.54098361]]]
+        """
+        while True:
+            goal_keeper = input("where is the goal keeper")
+            if goal_keeper == -1:
+                break
+            init_joint = np.random.choice(9)
+            self.set_joint_LHipRoll(init_joint)
+
+            # self.state = 0  # init state
+            flag = True
+            s = [goal_keeper, init_joint]
+            while flag:
+                action = self.q_max(s)
+                self.make_action(action)
+                if action == 2:
+                    if input("Succeed or Fail?"):
+                        flag = False
+                s = self.State_Transition(s, action)
+
+
+
 
 
 
@@ -594,7 +673,9 @@ if __name__ == '__main__':
     # node_instance.tutorial5_soccer_execute_test_by_tactile()
     # node_instance.stand()
     # node_instance.test()
+    # node_instance.tutorial5_soccer_joint_test()
     node_instance.tutorial5_soccer_train()
+    node_instance.tutorial5_soccer_test()
     # node_instance. tutorial5_soccer_execute_test_by_tactile()
 
 
