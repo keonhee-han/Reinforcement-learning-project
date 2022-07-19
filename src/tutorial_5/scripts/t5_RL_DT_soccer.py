@@ -451,7 +451,8 @@ if __name__ == '__main__':
     # node_instance.tutorial5_soccer_execute_test_by_tactile()
     # node_instance.stand()
     # node_instance.test()
-    node_instance.tutorial5_soccer_train()
+    # node_instance.tutorial5_soccer_train()
+    node_instance. tutorial5_soccer_execute_test_by_tactile()
 
 
 
