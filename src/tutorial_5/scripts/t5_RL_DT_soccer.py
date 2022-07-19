@@ -16,6 +16,7 @@ import sys
 import RL_DT
 from sklearn import tree
 import csv
+import copy
 
 
 class tutorial5_soccer:
@@ -356,22 +357,32 @@ class tutorial5_soccer:
 
 
 
+    def check_convergence(self, action_values_temp):
+        for i in range(self.Q.shape[0]):
+            for j in range(self.Q.shape[1]):
+                if (abs(self.Q[i][j] - action_values_temp[i][j]) > 0.01):
+                    return False
+        return True
+
     def Compute_Value(self, stepsize):
         # Value iteration
         # print("Compute_value")
         minivisits = np.min(self.visit)
         print("visit:", self.visit)
-        for step in range(0, stepsize):
+        converged = False
+        while not converged:
+            Q_temp = copy.deepcopy(self.Q)
             for s in self.sM:
                 for a in self.A:
                     if self.exp and self.visit[s][a] == minivisits:
-                        # print("RMax")
+                        print("RMax")
                         self.Q[s][a] = 999
                     else:
                         # print("R")
                         self.Q[s][a] = self.Rm[s][a]
                         s_prime = self.State_Transition(s, a)
                         self.Q[s][a] += self.gamma*max(self.Q[s_prime][:])
+            converged = self.check_convergence(Q_temp)
 
         return 0
 
@@ -406,7 +417,10 @@ class tutorial5_soccer:
         # self.state = 0  # init state
         s = self.init_state
         self.sM.append(s)
-        for step in range(self.maxstep):
+        converged = False
+        while not converged or np.min(self.visit) < 1:
+            print(converged)
+            Q_temp = copy.deepcopy(self.Q)
             action = self.q_max(s)  # greedy action
             self.make_action(action)
             print("maxaction:", action)
@@ -417,7 +431,15 @@ class tutorial5_soccer:
                 r = -1
             else:
                 # wait reward signal after kick
-                r = input("reward:")
+                # r = input("reward:")
+                """"""
+                if s == 0 or s == 9:
+                    r = -20
+                elif s == 4:
+                    r = 20
+                else:
+                    r = -2
+
                 """
                 flag = False
                 while not flag:
@@ -433,7 +455,7 @@ class tutorial5_soccer:
             # self.exp = self.Check_Model()
             self.exp = True
             # print("exp:", self.exp)
-            if np.min(self.visit) > 1:
+            if np.min(self.visit) >= 1:
                 self.exp = False
                 # stop giving Rmax after every state is visited twice
             if self.Ch:
@@ -441,6 +463,7 @@ class tutorial5_soccer:
                 self.Compute_Value(1000)
             s = s_prime
             print(self.Q)
+            converged = self.check_convergence(Q_temp)
 
 
 
@@ -451,8 +474,8 @@ if __name__ == '__main__':
     # node_instance.tutorial5_soccer_execute_test_by_tactile()
     # node_instance.stand()
     # node_instance.test()
-    # node_instance.tutorial5_soccer_train()
-    node_instance. tutorial5_soccer_execute_test_by_tactile()
+    node_instance.tutorial5_soccer_train()
+    # node_instance. tutorial5_soccer_execute_test_by_tactile()
 
 
 
