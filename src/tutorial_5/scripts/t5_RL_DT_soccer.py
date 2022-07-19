@@ -20,7 +20,7 @@ import copy
 
 
 class tutorial5_soccer:
-    def __init__(self, init_state=0, gamma=0.8, MAXSTEPS=100):
+    def __init__(self, init_joint=0, init_goal_keeper=0, gamma=0.8, MAXSTEPS=100, goal_keeper_num = 3):
         self.blobX = 0
         self.blobY = 0
         self.blobSize = 0
@@ -28,6 +28,9 @@ class tutorial5_soccer:
         self.shoulderPitch = 0
         # For setting the stiffnes of single joints
         self.jointPub = 0
+
+        self.init_state = init_joint
+        self.init_goal_keeper = init_goal_keeper
 
         self.state = 0 # for RL-DT to read
         self.state_prime = 0 # for RL-DT to read
@@ -37,14 +40,14 @@ class tutorial5_soccer:
         # for RL-DT
         self.A = [0, 1, 2]  # 'Left': 0, 'Right': 1, 'Kick': 2
         self.sM = []  # set of all state
-        self.visit = np.zeros((10, 3, 3))  # counting the amount of visited state
-        self.Q = np.zeros((10, 3, 3))  # q table
-        self.Rm = np.zeros((10, 3, 3))  # reward matrix
+        self.visit = np.zeros((goal_keeper_num,10, 3))  # counting the amount of visited state
+        self.Q = np.zeros((goal_keeper_num,10, 3))  # q table
+        self.Rm = np.zeros((goal_keeper_num, 10, 3))  # reward matrix
         self.Ch = False
         self.exp = False
         self.gamma = gamma
         self.maxstep = MAXSTEPS
-        self.init_state = init_state
+
         self.possible_state = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         self.X_train = []
         self.y_train = []
@@ -125,6 +128,11 @@ class tutorial5_soccer:
         except CvBridgeError as e:
             rospy.logerr(e)
 
+    def Arcuo_marker(self):
+        return 0
+
+    def goal_keeper_state(self):
+        return 0
 
     def set_joint_angles(self, head_angle, topic):
         joint_angles_to_set = JointAnglesWithSpeed()
@@ -402,21 +410,23 @@ class tutorial5_soccer:
             shift = -1
         elif action == 1:
             shift = 1
-        next_state = state + shift
-        if next_state < 0 or next_state > 9:
-            return state
-        return next_state
+        next_state_joint = state[1] + shift # state[1] joint
+        if next_state_joint < 0 or next_state_joint > 9:
+            return [state[0], state[1]]
+        return [state[0], next_state_joint]
 
 
     def get_predictions(self, s_m, a_m):
-        r_pred = self.rewardTree.predict([[s_m, a_m]])
+        r_pred = self.rewardTree.predict([[s_m[0],s_m[1], a_m]])
+        print(r_pred)
         return r_pred[0]
 
 
     def add_experience_to_tree(self, s, action, r):
-        self.X_train.append([s, action])
+        self.X_train.append([s[0],s[1], action])
         self.y_train.append(r)
         self.rewardTree.fit(self.X_train, self.y_train)
+        print("fit!")
         return True
 
 
@@ -424,10 +434,13 @@ class tutorial5_soccer:
         # not completed
         # n = self.state_num
         self.Ch = self.add_experience_to_tree(s, action, r)
+        # print("sM:",self.sM)
         for s_m in self.sM:
             for a_m in self.A:
                 # print("pred:", s_m, a_m, self.get_predictions(s_m, a_m))
-                self.Rm[s_m][a_m] = self.get_predictions(s_m, a_m)
+                # print("sm_am: ",s_m, a_m)
+                self.Rm[s_m[0]][s_m[1]][a_m] = self.get_predictions(s_m, a_m)
+
         return self.Ch
                 # self.Rm[s_m][a_m] = self.reward_true[s_m][a_m]
 
@@ -447,30 +460,34 @@ class tutorial5_soccer:
                     return False
         return True
 
-    def Compute_Value(self, stepsize):
+    def Compute_Value(self, current_state, stepsize):
         # Value iteration
         # print("Compute_value")
-        minivisits = np.min(self.visit)
+        minivisits = np.min(self.visit[current_state[0]])
         print("visit:", self.visit)
         converged = False
         while not converged:
-            Q_temp = copy.deepcopy(self.Q)
-            for s in self.sM:
-                for a in self.A:
-                    if self.exp and self.visit[s][a] == minivisits:
-                        print("RMax")
-                        self.Q[s][a] = 999
-                    else:
-                        # print("R")
-                        self.Q[s][a] = self.Rm[s][a]
-                        s_prime = self.State_Transition(s, a)
-                        self.Q[s][a] += self.gamma*max(self.Q[s_prime][:])
-            converged = self.check_convergence(Q_temp)
+            for step in range(stepsize):
+                Q_temp = copy.deepcopy(self.Q)
+                for s in self.sM:
+                    for a in self.A:
+                        if self.exp and self.visit[s[0]][s[1]][a] == minivisits:
+                            # print("RMax")
+                            self.Q[s[0]][s[1]][a] = 999
+                        else:
+                            # print("R")
+                            self.Q[s[0]][s[1]][a] = self.Rm[s[0]][s[1]][a]
+                            s_prime = self.State_Transition(s, a)
+                            self.Q[s[0]][s[1]][a] += self.gamma*max(self.Q[s_prime[0]][s_prime[1]][:])
+            # converged = self.check_convergence(Q_temp)
+            converged = True
 
         return 0
 
     def q_max(self, state):
-        Q = self.Q[state][:]
+        # state[0] is goal keeper position. state[1] is joint angle
+        Q = self.Q[state[0]][state[1]][:]
+        print(Q)
         max_q = Q[0]
         max_i = 0
         for i in range(len(Q)):
@@ -489,64 +506,84 @@ class tutorial5_soccer:
 
     def tutorial5_soccer_train(self):
         rospy.init_node('tutorial5_soccer_node', anonymous=True)
-        self.set_stiffness(True)
+        # self.set_stiffness(True)
         self.jointPub = rospy.Publisher("joint_angles", JointAnglesWithSpeed, queue_size=10)
         rospy.sleep(2.0)
-        self.one_foot_stand()
+        # self.one_foot_stand()
         # rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_reward) # will give the data?
         rospy.Subscriber('joint_states', JointState, self.joints_cb)
 
         # self.state = 0  # init state
-        s = self.init_state
+        s = [self.init_goal_keeper, self.init_state]
         self.sM.append(s)
         converged = False
-        while not converged or np.min(self.visit) < 1:
-            print(converged)
-            Q_temp = copy.deepcopy(self.Q)
-            action = self.q_max(s)  # greedy action
-            self.make_action(action)
-            print("maxaction:", action)
-            self.visit[s][action] += 1
-            s_prime = self.State_Transition(s, action)
-            # r = rl_dt.reward_true[s][action]
-            if action == 0 or action == 1:
-                r = -1
-            else:
-                # wait reward signal after kick
-                r = input("reward:")
-                """
-                if s == 0 or s == 9:
-                    r = -20
-                elif s == 4:
-                    r = 20
+        step = 0
+        Goal_keeper = []
+        while 0 not in Goal_keeper or 1 not in Goal_keeper or 2 not in Goal_keeper:
+            # s[1] = goal_keeper
+            s[0] = input("Please input the location of goal_keeper(0->left, 1->middle, 2->right):")
+            # self.
+            Goal_keeper.append(s[0])
+            step = 0
+            # while not converged or np.min(self.visit[s[0]]) < 1:
+            # while np.min(self.visit[s[0]]) < 2:
+            while step < self.maxstep:
+                # print("visit_con:",self.visit[:])
+                print("np_min:", np.min(self.visit[s[0]]))
+                # break
+            #while step<100:
+                step = step + 1
+                # print(converged)
+                # Q_temp = copy.deepcopy(self.Q[:][goal_keeper][:])
+                action = self.q_max(s)  # greedy action
+                # self.make_action(action)
+                print("maxaction:", action)
+                self.visit[s[0]][s[1]][action] += 1   # s[0] goal keeper, s[1] joint
+                s_prime = self.State_Transition(s, action)
+                print("s_prime:", s_prime)
+                # r = rl_dt.reward_true[s][action]
+                if action == 0 or action == 1:
+                    r = -1
                 else:
-                    r = -2
+                    # wait reward signal after kick
+                    # r = input("reward:")  # hold on
 
-                
-                flag = False
-                while not flag:
-                    flag = self.touch_cb_reward   # not sure how to read,
-                r = flag
-                """
+                    if s[1] == 0 or s[1] == 9 :
+                        r = -20
+                    elif s[0] == 0 and s[1] == 4:
+                        r = 20
+                    elif s[0] == 1 and s[1] == 6:
+                        r = 20
+                    elif s[0] == 2 and s[1] == 8:
+                        r = 20
+                    else:
+                        r = -2
+                    """
+                    flag = False
+                    while not flag:
+                        flag = self.touch_cb_reward   # not sure how to read,
+                    r = flag
+                    """
 
-            # return reward
-            if s_prime not in self.sM:
-                self.sM.append(s_prime)
+                # return reward
+                if s_prime not in self.sM:
+                    self.sM.append(s_prime)
 
-            self.Update_Model(s, action, r, s_prime) # update the reward tree, neglect transition tree
-            self.exp = self.Check_Model()
-            self.exp = True
-            # print("exp:", self.exp)
-            if np.min(self.visit) >= 1:
-                self.exp = False
-                # stop giving Rmax after every state is visited twice
-            if self.Ch:
-                # self.Compute_Value(300)
-                self.Compute_Value(1000)
-            s = s_prime
+                self.Update_Model(s, action, r, s_prime) # update the reward tree, neglect transition tree
+                # self.exp = self.Check_Model() # not use
+                self.exp = True
+                # print("exp:", self.exp)
+                if np.min(self.visit) >= 1:
+                    self.exp = False
+                    # stop giving Rmax after every state is visited twice
+                if self.Ch: # always true
+                    # self.Compute_Value(300)
+                    self.Compute_Value(s, 300)
+                s = s_prime
+                # converged = self.check_convergence(Q_temp)
             print(self.Q)
-            converged = self.check_convergence(Q_temp)
+            print(self.Rm)
 
 
 
