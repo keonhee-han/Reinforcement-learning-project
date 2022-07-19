@@ -15,10 +15,11 @@ from naoqi import ALProxy
 import sys
 import RL_DT
 from sklearn import tree
+import csv
 
 
 class tutorial5_soccer:
-    def __init__(self, init_state=0, gamma=0.8, MAXSTEPS=70):
+    def __init__(self, init_state=0, gamma=0.8, MAXSTEPS=100):
         self.blobX = 0
         self.blobY = 0
         self.blobSize = 0
@@ -259,6 +260,7 @@ class tutorial5_soccer:
             self.instant_reward = -20
             return self.instant_reward
         else:
+            self.instant_reward = 0
             return False
         # how to build the waiting signal
 
@@ -336,7 +338,7 @@ class tutorial5_soccer:
 
     def Update_Model(self,s,action,r, s_prime):
         # not completed
-        n = self.state_num
+        # n = self.state_num
         self.Ch = self.add_experience_to_tree(s, action, r)
         for s_m in self.sM:
             for a_m in self.A:
@@ -384,6 +386,13 @@ class tutorial5_soccer:
         # print("max_action:", max_i)
         return max_i
 
+    def test(self):
+        rospy.init_node('tutorial5_soccer_node', anonymous=True)
+        rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_reward)  # will give the data?
+        print(HeadTouch.state)
+        print(HeadTouch.button)
+        # rospy.spin()
+
     def tutorial5_soccer_train(self):
         rospy.init_node('tutorial5_soccer_node', anonymous=True)
         self.set_stiffness(True)
@@ -408,10 +417,13 @@ class tutorial5_soccer:
                 r = -1
             else:
                 # wait reward signal after kick
+                r = input("reward:")
+                """
                 flag = False
                 while not flag:
                     flag = self.touch_cb_reward   # not sure how to read,
                 r = flag
+                """
 
             # return reward
             if s_prime not in self.sM:
@@ -428,6 +440,7 @@ class tutorial5_soccer:
                 # self.Compute_Value(300)
                 self.Compute_Value(1000)
             s = s_prime
+            print(self.Q)
 
 
 
@@ -437,5 +450,8 @@ if __name__ == '__main__':
     # node_instance.tutorial5_soccer_test()
     # node_instance.tutorial5_soccer_execute_test_by_tactile()
     # node_instance.stand()
+    # node_instance.test()
     node_instance.tutorial5_soccer_train()
+
+
 
