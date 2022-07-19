@@ -37,9 +37,9 @@ class tutorial5_soccer:
         # for RL-DT
         self.A = [0, 1, 2]  # 'Left': 0, 'Right': 1, 'Kick': 2
         self.sM = []  # set of all state
-        self.visit = np.zeros((10, 3, 3))  # counting the amount of visited state
-        self.Q = np.zeros((10, 3, 3))  # q table
-        self.Rm = np.zeros((10, 3, 3))  # reward matrix
+        self.visit = np.zeros((10, 3))  # counting the amount of visited state
+        self.Q = np.zeros((10, 3))  # q table
+        self.Rm = np.zeros((10, 3))  # reward matrix
         self.Ch = False
         self.exp = False
         self.gamma = gamma
@@ -62,69 +62,8 @@ class tutorial5_soccer:
 
     # Read in the goal position!
     # TODO: Aruco marker detection
-    def image_cb(self,data):
+    def image_cb(self, data):
         bridge_instance = CvBridge()
-        try:
-            br = CvBridge()
-            # Output debugging information to the terminal
-            rospy.loginfo("receiving video frame")
-            # Convert ROS Image message to OpenCV image
-            current_frame = br.imgmsg_to_cv2(data)
-            current_frame = cv2.cvtColor(current_frame,cv2.COLOR_BGR2HSV)
-            params = cv2.SimpleBlobDetector_Params()
-            # Change thresholds
-            params.minThreshold = 1
-            params.maxThreshold = 255
-            # Filter by Area.
-            params.filterByArea = True
-            params.minArea = 30
-            # Filter by Circularity
-            params.filterByCircularity = True
-            params.minCircularity = 0.1
-            params.filterByColor = True
-            params.blobColor = 255
-            lower_green = np.array([160,100,20])
-            upper_green = np.array([179,255,255])
-            # Threshold the HSV image to get only blue colors
-            mask = cv2.inRange(current_frame, lower_green, upper_green)
-            erode_kernel = np.ones((3,3),np.uint8)
-            eroded_img = cv2.erode(mask,erode_kernel,iterations = 1)
-            # dilate
-            dilate_kernel = np.ones((10,10),np.uint8)
-            dilate_img = cv2.dilate(eroded_img,dilate_kernel,iterations = 1)
-            detector = cv2.SimpleBlobDetector_create(params)
-            # Detect blobs.
-            # Create a detector with the parameters
-            # OLD: detector = cv2.SimpleBlobDetector(params)
-            detector = cv2.SimpleBlobDetector_create(params)
-            # Detect blobs.
-            #keypoints = detector.detect(image_hsv)
-            keypoints = detector.detect(dilate_img)
-            if(len(keypoints) >= 0):
-                max = 0
-                xCoord = 0
-                yCoord = 0
-                maxObject = None
-                for blob in keypoints:
-                    if(blob.size>max):
-                        max = blob.size
-                        xCoord = blob.pt[0]
-                        yCoord = blob.pt[1]
-                        maxObject = blob
-            # Round the coordinates to get pixel coordinates:
-            xPixel = round(xCoord)
-            yPixel = round(yCoord)
-            # For better readability, round size to 3 decimal indices
-            blobSize = round(max, 3)
-            rospy.loginfo("Biggest blob: x Coord: " + str(xPixel) + " y Coord: " + str(yPixel) + " Size: " + str(blobSize))
-            #im_with_keypoints = cv2.drawKeypoints(current_frame, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            cv2.circle(frame,(int(kp_max.pt[0]),int(kp_max.pt[1])),int(kp_max.size),(0,255,0),2)
-            cv2.imshow("Keypoints", im_with_keypoints)
-            cv2.waitKey(3)
-
-        except CvBridgeError as e:
-            rospy.logerr(e)
-
 
     def set_joint_angles(self, head_angle, topic):
         joint_angles_to_set = JointAnglesWithSpeed()
@@ -166,7 +105,6 @@ class tutorial5_soccer:
                 self.jointPub.publish(joint_angles_to_set)
                 rospy.sleep(0.05)
 
-# rosservice call /body_stiffness/disable "{}"
 # optimal Q_Talbe for the middle goalkeeper
 #     [[41.67488634  41.67192726  53.33990907]
 #      [41.67192726  41.67003344  53.3375418]
