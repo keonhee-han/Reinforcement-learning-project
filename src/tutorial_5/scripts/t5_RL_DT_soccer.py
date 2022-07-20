@@ -39,6 +39,7 @@ class tutorial5_soccer:
         self.state_prime = 0 # for RL-DT to read
         self.action = 0 # for RL-DT to read
         self.instant_reward = 0
+        self.cumulative_reward = []
 
         # for RL-DT
         self.A = [0, 1, 2]  # 'Left': 0, 'Right': 1, 'Kick': 2
@@ -55,7 +56,13 @@ class tutorial5_soccer:
         self.X_train = []
         self.y_train = []
         self.rewardTree = tree.DecisionTreeClassifier()
-        self.max_marker_distance = 10
+        self.max_marker_distance = 226
+        self.marker_id_left_post = 1
+        self.marker_id_right_post = 2
+        self.marker_id_goalkeeper = 77
+        self.x_left_post = 0
+        self.x_right_post = 0
+        self.x_goal_keeper = 0
         self.goalkeeper_state = 0
         self.ARUCO_DICT = {
             "DICT_4X4_50": aruco.DICT_4X4_50,
@@ -98,7 +105,7 @@ class tutorial5_soccer:
         try:
             br = CvBridge()
             # Output debugging information to the terminal
-            rospy.loginfo("receiving video frame")
+            #rospy.loginfo("receiving video frame")
             # Convert ROS Image message to OpenCV image
             current_frame = br.imgmsg_to_cv2(data, "bgr8")
             args = self.args()
@@ -106,20 +113,28 @@ class tutorial5_soccer:
             arucoDict = cv2.aruco.Dictionary_get(self.ARUCO_DICT[args['type']])
             arucoParams = cv2.aruco.DetectorParameters_create()
             (corners, ids, rejected) = cv2.aruco.detectMarkers(current_frame, arucoDict, parameters=arucoParams)
-            print(ids)
-            print(corners)
 
-            marker_positions = []
+            if len(corners) == 3:
+                for (markerCorner, markerId) in zip(corners, ids):
+                    marker_id = markerId[0]
+                    corners_abcd = markerCorner.reshape((4, 2))
+                    (topLeft, topRight, bottomRight, bottomLeft) = corners_abcd
+                    cX = int((topLeft[0] + bottomRight[0]) // 2)
+                    #print(cX)
+                    #print(markerId[0])
+                    if(marker_id == self.marker_id_left_post):
+                        self.x_left_post = cX
+                    elif(marker_id == self.marker_id_right_post):
+                        self.x_right_post = cX
+                    elif(marker_id == self.marker_id_goalkeeper):
+                        self.x_goal_keeper = cX
 
-            for markerCorner in corners:
-                corners_abcd = markerCorner.reshape((4, 2))
-                (topLeft, topRight, bottomRight, bottomLeft) = corners_abcd
-                cX = int((topLeft[0] + bottomRight[0]) // 2)
-                marker_positions.append(cX)
-
-            distance = abs(marker_positions[1] - marker_positions[0])
-            print("Marker-distance: ", str(distance))
-            self.goalkeeper_state = int(distance/self.max_marker_distance * 3)
+                distance = abs(self.x_left_post - self.x_goal_keeper)
+                #print("Distance: ", distance)
+                self.max_marker_distance = abs(self.x_left_post - self.x_right_post)
+                #print("Goal-width: "+ str(self.max_marker_distance))
+                self.goalkeeper_state = int(distance/float(self.max_marker_distance) * 3)
+                #print("Goal_keeper_state: " + str(self.goalkeeper_state))
 
 
             if len(corners) > 0:
@@ -144,13 +159,6 @@ class tutorial5_soccer:
                         int(markerId)), (int(topLeft[0] - 10), int(topLeft[1] - 10)), cv2.FONT_HERSHEY_COMPLEX, 1,
                                 (0, 0, 255))  # print(arucoDict)
                     cv2.imshow("[INFO] marker detected", current_frame)
-                    cv2.waitKey(0)
-            else:
-                print("[INFO] No marker Detected")
-                pass
-            cv2.destroyAllWindows()
-            cv2.imshow("Keypoints", current_frame)
-            cv2.waitKey(3)
 
         except CvBridgeError as e:
             rospy.logerr(e)
@@ -264,7 +272,7 @@ class tutorial5_soccer:
             print('could not create ALRobotPosture')
             print('Error was', e)
         postureProxy.goToPosture('Stand', 1.0)
-        print(postureProxy.getPostureFamily())
+        #print(postureProxy.getPostureFamily())
 
     def one_foot_stand(self):
         # it is the init state ready for kicking
@@ -449,7 +457,7 @@ class tutorial5_soccer:
         self.X_train.append([s[0],s[1], action])
         self.y_train.append(r)
         self.rewardTree.fit(self.X_train, self.y_train)
-        print("fit!")
+        #print("fit!")
         return True
 
 
@@ -488,7 +496,7 @@ class tutorial5_soccer:
         # Value iteration
         # print("Compute_value")
         minivisits = np.min(self.visit[current_state[0]])
-        print("visit:", self.visit)
+        #print("visit:", self.visit)
         converged = False
         while not converged:
             for step in range(stepsize):
@@ -511,7 +519,7 @@ class tutorial5_soccer:
     def q_max(self, state):
         # state[0] is goal keeper position. state[1] is joint angle
         Q = self.Q[state[0]][state[1]][:]
-        print(Q)
+        print("Q: ",Q)
         max_q = Q[0]
         max_i = 0
         for i in range(len(Q)):
@@ -558,11 +566,11 @@ class tutorial5_soccer:
 
         # self.state = 0  # init state
         s = [self.init_goal_keeper, self.init_state]
-        input("Please press any key to start learning")
-
+        temp = input("Please press any key to start learning")
         step = 0
         Goal_keeper = []
         while 0 not in Goal_keeper or 1 not in Goal_keeper or 2 not in Goal_keeper:
+            print("Goalkeeper-state: "+str(self.goalkeeper_state))
             s[0] = self.goalkeeper_state
             Goal_keeper.append(s[0])
             self.sM.append(s)
@@ -585,6 +593,7 @@ class tutorial5_soccer:
                 s_prime = self.State_Transition(s, action)
                 print("s_prime:", s_prime)
                 # r = rl_dt.reward_true[s][action]
+                r = 0
                 print("instant_kick:", self.kick_reward)
                 if action == 0 or action == 1:
                     r = -1
@@ -593,27 +602,8 @@ class tutorial5_soccer:
                     # wait reward signal after kick
                     r = input("reward:")  # hold on
                     # self.touch_cb_reward
+                self.cumulative_reward.append(r)
 
-
-
-                    """
-                    if s[1] == 0 or s[1] == 9 :
-                        r = -20
-                    elif s[0] == 0 and s[1] == 4:
-                        r = 20
-                    elif s[0] == 1 and s[1] == 6:
-                        r = 20
-                    elif s[0] == 2 and s[1] == 8:
-                        r = 20
-                    else:
-                        r = -2
-                    """
-                    """
-                    flag = False
-                    while not flag:
-                        flag = self.touch_cb_reward   # not sure how to read,
-                    r = flag
-                    """
 
                 # return reward
                 if s_prime not in self.sM:
@@ -631,9 +621,15 @@ class tutorial5_soccer:
                     self.Compute_Value(s, 300)
                 s = s_prime
                 converged = self.check_convergence(Q_temp)
-            print(self.Q)
-            print(self.Rm)
+            #print(self.Q)
+            #print(self.Rm)
             input("Please change the location of goal_keeper to continue learning:")
+
+        rewards = self.cumulative_reward
+        with open('cumulative_reward.csv', 'w') as f:
+            write = csv.writer(f)
+            write.writerow(self.cumulative_reward)
+        input("Press any key for testing")
 
     def tutorial5_soccer_test(self):
         rospy.init_node('tutorial5_soccer_node', anonymous=True)
