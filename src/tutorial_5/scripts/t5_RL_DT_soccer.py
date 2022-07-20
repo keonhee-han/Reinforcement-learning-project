@@ -55,6 +55,8 @@ class tutorial5_soccer:
         self.X_train = []
         self.y_train = []
         self.rewardTree = tree.DecisionTreeClassifier()
+        self.max_marker_distance = 10
+        self.goalkeeper_state = 0
         self.ARUCO_DICT = {
             "DICT_4X4_50": aruco.DICT_4X4_50,
             "DICT_4X4_100": aruco.DICT_4X4_100,
@@ -106,26 +108,43 @@ class tutorial5_soccer:
             (corners, ids, rejected) = cv2.aruco.detectMarkers(current_frame, arucoDict, parameters=arucoParams)
             print(ids)
             print(corners)
+
+            marker_positions = []
+
+            for markerCorner in corners:
+                corners_abcd = markerCorner.reshape((4, 2))
+                (topLeft, topRight, bottomRight, bottomLeft) = corners_abcd
+                cX = int((topLeft[0] + bottomRight[0]) // 2)
+                marker_positions.append(cX)
+
+            distance = abs(marker_positions[1] - marker_positions[0])
+            print("Marker-distance: ", str(distance))
+            self.goalkeeper_state = int(distance/self.max_marker_distance * 3)
+
+
             if len(corners) > 0:
                 ids = ids.flatten()
-                for (markerCorner, markerId) in zip(corners, ids):         corners_abcd = markerCorner.reshape((4, 2))
-                (topLeft, topRight, bottomRight, bottomLeft) = corners_abcd
-                topRightPoint = (int(topRight[0]), int(topRight[1]))
-                topLeftPoint = (int(topLeft[0]), int(topLeft[1]))
-                bottomRightPoint = (int(bottomRight[0]), int(bottomRight[1]))
-                bottomLeftPoint = (int(bottomLeft[0]), int(bottomLeft[1]))
-                cv2.line(current_frame, topLeftPoint, topRightPoint, (0, 255, 0), 2)
-                cv2.line(current_frame, topRightPoint, bottomRightPoint, (0, 255, 0), 2)
-                cv2.line(current_frame, bottomRightPoint, bottomLeftPoint, (0, 255, 0), 2)
-                cv2.line(current_frame, bottomLeftPoint, topLeftPoint, (0, 255, 0), 2)
-                cX = int((topLeft[0] + bottomRight[0]) // 2)
-                cY = int((topLeft[1] + bottomRight[1]) // 2)
-                cv2.circle(current_frame, (cX, cY), 4, (255, 0, 0), -1)
-                cv2.putText(current_frame, str(
-                    int(markerId)), (int(topLeft[0] - 10), int(topLeft[1] - 10)), cv2.FONT_HERSHEY_COMPLEX, 1,
-                            (0, 0, 255))  # print(arucoDict)
-                cv2.imshow("[INFO] marker detected", current_frame)
-                cv2.waitKey(0)
+                for (markerCorner, markerId) in zip(corners, ids):
+                    corners_abcd = markerCorner.reshape((4, 2))
+                    (topLeft, topRight, bottomRight, bottomLeft) = corners_abcd
+                    topRightPoint = (int(topRight[0]), int(topRight[1]))
+                    topLeftPoint = (int(topLeft[0]), int(topLeft[1]))
+                    bottomRightPoint = (int(bottomRight[0]), int(bottomRight[1]))
+                    bottomLeftPoint = (int(bottomLeft[0]), int(bottomLeft[1]))
+                    cv2.line(current_frame, topLeftPoint, topRightPoint, (0, 255, 0), 2)
+                    cv2.line(current_frame, topRightPoint, bottomRightPoint, (0, 255, 0), 2)
+                    cv2.line(current_frame, bottomRightPoint, bottomLeftPoint, (0, 255, 0), 2)
+                    cv2.line(current_frame, bottomLeftPoint, topLeftPoint, (0, 255, 0), 2)
+                    cX = int((topLeft[0] + bottomRight[0]) // 2)
+                    cY = int((topLeft[1] + bottomRight[1]) // 2)
+                    self.goalkeeper_x = cX
+                    self.goalkeeper_y = cY
+                    cv2.circle(current_frame, (cX, cY), 4, (255, 0, 0), -1)
+                    cv2.putText(current_frame, str(
+                        int(markerId)), (int(topLeft[0] - 10), int(topLeft[1] - 10)), cv2.FONT_HERSHEY_COMPLEX, 1,
+                                (0, 0, 255))  # print(arucoDict)
+                    cv2.imshow("[INFO] marker detected", current_frame)
+                    cv2.waitKey(0)
             else:
                 print("[INFO] No marker Detected")
                 pass
@@ -535,19 +554,19 @@ class tutorial5_soccer:
         # rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_reward) # will give the data?
         rospy.Subscriber('joint_states', JointState, self.joints_cb)
+        rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
 
         # self.state = 0  # init state
         s = [self.init_goal_keeper, self.init_state]
-        s[0] = input("Please input the location of goal_keeper(0->left, 1->middle, 2->right):")
-        self.sM.append(s)
-        converged = False
+        input("Please press any key to start learning")
+
         step = 0
         Goal_keeper = []
         while 0 not in Goal_keeper or 1 not in Goal_keeper or 2 not in Goal_keeper:
-            # s[1] = goal_keeper
-            s[0] = input("Please input the location of goal_keeper(0->left, 1->middle, 2->right):")
-            # self.
+            s[0] = self.goalkeeper_state
             Goal_keeper.append(s[0])
+            self.sM.append(s)
+            converged = False
             step = 0
             while not converged or np.min(self.visit[s[0]]) < 1:
             # while np.min(self.visit[s[0]]) < 2:
@@ -614,6 +633,7 @@ class tutorial5_soccer:
                 converged = self.check_convergence(Q_temp)
             print(self.Q)
             print(self.Rm)
+            input("Please change the location of goal_keeper to continue learning:")
 
     def tutorial5_soccer_test(self):
         rospy.init_node('tutorial5_soccer_node', anonymous=True)
@@ -624,6 +644,7 @@ class tutorial5_soccer:
         # rospy.Subscriber("joint_states",JointAnglesWithSpeed,self.joints_cb)
         rospy.Subscriber("tactile_touch", HeadTouch, self.touch_cb_reward)  # will give the data?
         rospy.Subscriber('joint_states', JointState, self.joints_cb)
+        rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
         """
         self.Q = [[[  9.10098361,  12.62622951,  -9.89901639]
                   [  9.10098361,  17.03278689,  11.62622951]
@@ -659,9 +680,8 @@ class tutorial5_soccer:
                   [ 29.42622951,  22.54098361,   3.54098361]]]
         """
         while True:
-            goal_keeper = input("where is the goal keeper")
-            if goal_keeper == -1:
-                break
+            input("Press any key to score a goal")
+            goal_keeper = self.goalkeeper_state
             init_joint = np.random.choice(9)
             self.set_joint_LHipRoll(init_joint)
 
