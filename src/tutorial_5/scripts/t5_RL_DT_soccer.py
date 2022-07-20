@@ -216,27 +216,6 @@ class tutorial5_soccer:
                 self.jointPub.publish(joint_angles_to_set)
                 rospy.sleep(0.05)
 
-# rosservice call /body_stiffness/disable "{}"
-# optimal Q_Talbe for the middle goalkeeper
-#     [[41.67488634  41.67192726  53.33990907]
-#      [41.67192726  41.67003344  53.3375418]
-#     [41.67003344
-#     32.33602676
-#     53.33602676]
-#     [41.6688214   24.8688214   31.33505712]
-#     [32.33505712
-#     18.89505712
-#     23.8680457]
-#     [24.8680457   18.89687149  17.89443656]
-#     [18.89443656
-#     24.86949719
-#     17.89559776]
-#     [18.89559776  32.33559776  23.8684782]
-#     [24.8684782
-#     41.6684782
-#     31.33478256]
-#     [32.33478256  41.6684782   53.33478256]]
-
     def make_action(self, action):
         if action == 0:
             self.move_in()
@@ -281,13 +260,6 @@ class tutorial5_soccer:
         self.set_stiffness(True)
         # using the rostopic echo to get the desired joint states, not perfect
         # rostopic echo /joint_states
-        """
-        position_ori = [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.19937801361083984, -1.9574260711669922,
-            -1.5124820470809937, -0.8882279396057129, 0.32840001583099365, -0.13955211639404297, 0.31297802925109863,
-            -0.3911280632019043, 1.4679961204528809, -0.8943638801574707, -0.12114405632019043, -0.13955211639404297,
-            0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.07980990409851074, -0.3282339572906494,
-            1.676703929901123, -0.45717406272888184, 1.1964781284332275, 0.18872404098510742, 0.36965203285217285, 0.397599995136261]
-        """
 
         # way1 the best position i find
         position = [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.19937801361083984,
@@ -303,16 +275,8 @@ class tutorial5_soccer:
                   'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll', 'RHipYawPitch',
                   'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
                   'RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
-        '''
-        # way 2
-        position = [-0.015382051467895508, 0.5120565295219421, 1.8346221446990967, 0.1779019832611084, -1.937483787536621,
-                    -1.5124820470809937, -1.0692400932312012, 0.32760000228881836, -0.11807608604431152, 0.31297802925109863,
-                    -0.3911280632019043, 1.4664621353149414, -0.8943638801574707, -0.12114405632019043, -0.11807608604431152,
-                    0.3697359561920166, 0.2530679702758789, -0.09232791513204575, -0.07665801048278809, -0.269942045211792,
-                    1.6951122283935547, -0.4617760181427002, 1.1949440240859985, 0.2025299072265625, 0.3589141368865967, 0.39399999380111694]
-        '''
-        # backup init position
-        # way3 [0.004559993743896484, 0.5141273736953735, 1.8330880403518677, 0.15335798263549805, -1.9129400253295898, -1.5032780170440674, -1.199629783630371, 0.32760000228881836, -0.22852396965026855, 0.4019498825073242, -0.3911280632019043, 1.4679961204528809, -0.8943638801574707, -0.12114405632019043, -0.22852396965026855, 0.3697359561920166, 0.23772811889648438, -0.09232791513204575, 0.08594608306884766, -0.3052239418029785, 1.6905097961425781, -0.44950389862060547, 1.1995460987091064, 0.1994619369506836, 0.3512439727783203, 0.3952000141143799]
+
+    
         self.set_joint_angles_list(position, joints)
 
     def move_in(self):
@@ -360,24 +324,6 @@ class tutorial5_soccer:
         except rospy.ServiceException, e:
             rospy.logerr(e)
 
-    '''
-    def touch_cb(self,data):
-        if data.button == 1 and data.state == 1:  # TB1
-            #self.set_stiffness(True)
-            print("Kick motion & stiffness enabled")
-            self.kick()
-        if data.button == 2 and data.state == 1:
-            self.set_stiffness(False)
-            print("stiffness should be DISabled")
-        if data.button == 3 and data.state == 1:
-            self.set_stiffness(True)
-            print("stiffness should be ENabled")
-        # try kick motion
-        #if data.button == 3 and data.state == 1:
-        # left knee joint pitch: -0.092346 to 2.112528
-        # Left hip joint pitch: -1.535889 to 0.484090
-        # for RL motions the left hip roll is important: -0.379472 to 0.790477
-    '''
 
     def touch_cb_reward(self, data):
         if data.button == 1 and data.state == 1:  # miss the goal
@@ -642,6 +588,8 @@ class tutorial5_soccer:
         rospy.Subscriber('joint_states', JointState, self.joints_cb)
         rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.image_cb)
         """
+        Q table by simulation
+        give the 20 reward and -20 in some particular places, assuming the goal and falling down
         self.Q = [[[  9.10098361,  12.62622951,  -9.89901639]
                   [  9.10098361,  17.03278689,  11.62622951]
                   [ 12.62622951,  22.54098361,  16.03278689]
@@ -693,7 +641,9 @@ class tutorial5_soccer:
                 s = self.State_Transition(s, action)
 
 """
-Q table 
+Q table in real training the first part is when the goal keeper is in the left
+the second part for middle goal keeper
+the third for right goal keeper
 [[[ 24.86666667  32.33333333  23.86666667]
   [ 24.86666667  41.66666667  31.33333333]
   [ 32.33333333  41.66666667  53.33333333]
@@ -727,7 +677,7 @@ Q table
   [ 14.11466667   7.23338667   9.29173333]
   [ 10.29173333   7.23338667   6.23338667]]]
 
-learned reward
+learned reward from decision tree
 [[[ -1.  -1.  -2.]
   [ -1.  -1.  -2.]
   [ -1.  -1.  20.]
@@ -760,40 +710,6 @@ learned reward
   [ -1.  -1.  -2.]
   [ -1.  -1.  -2.]
   [ -1.  -1.  -2.]]]
-
-
-('visit:', array([[[ 1.,  2.,  1.],
-        [ 3.,  2.,  2.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  1.,  1.]],
-
-       [[ 2.,  3.,  2.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  2.,  1.],
-        [ 2.,  1.,  1.]],
-
-       [[ 1.,  2.,  1.],
-        [ 1.,  2.,  1.],
-        [ 1.,  2.,  2.],
-        [ 1.,  2.,  1.],
-        [ 1.,  2.,  1.],
-        [ 1.,  2.,  1.],
-        [ 1.,  2.,  1.],
-        [ 1.,  2.,  1.],
-        [ 1.,  2.,  1.],
-        [ 2.,  1.,  1.]]]))
 
 """
 
